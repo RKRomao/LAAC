@@ -1,0 +1,110 @@
+<%- include('../layouts/main') %>
+
+<% contentFor('body') { %>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-mortarboard-fill text-primary fs-1"></i>
+                    <h3 class="mt-3">Bem-vindo de Volta</h3>
+                    <p class="text-muted">Entre na sua conta LAAC</p>
+                </div>
+
+                <form id="loginForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope me-1"></i>Email
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="seu.email@exemplo.com" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira um email válido.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock me-1"></i>Password
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Insira a sua password" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                <i class="bi bi-eye" id="passwordToggle"></i>
+                            </button>
+                            <div class="invalid-feedback">
+                                Por favor, insira a sua password.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">
+                            Lembrar-me
+                        </label>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                        </button>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <a href="/forgot-password" class="text-decoration-none">
+                            <i class="bi bi-question-circle me-1"></i>Esqueceu a password?
+                        </a>
+                    </div>
+                </form>
+
+                <div class="text-center">
+                    <p class="mb-0">Ainda não tem conta?</p>
+                    <a href="/register" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus me-2"></i>Registar-se
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Login -->
+        <div class="card shadow-lg mt-4">
+            <div class="card-body p-4">
+                <h6 class="text-center mb-4">Ou entre com:</h6>
+                <div class="d-grid gap-2">
+                    <a href="/api/auth/google" class="btn btn-outline-danger">
+                        <i class="bi bi-google me-2"></i>Google
+                    </a>
+                    <a href="/api/auth/microsoft" class="btn btn-outline-primary">
+                        <i class="bi bi-microsoft me-2"></i>Microsoft
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('passwordToggle');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordToggle.className = 'bi bi-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        passwordToggle.className = 'bi bi-eye';
+    }
+}
+</script>
+<% } %>
