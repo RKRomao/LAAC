@@ -10,9 +10,9 @@ import {
   searchFAQs,
   getPopularFAQs,
   reorderFAQs,
-} from '@/controllers/faqController';
-import { authenticate, authorize } from '@/middleware/auth';
-import { validate } from '@/middleware/validation';
+} from '../controllers/faqController';
+import { authenticate, authorize } from '../middleware/auth';
+import { validate } from '../middleware/validation';
 
 const router = Router();
 

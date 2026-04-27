@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.optionalAuth = exports.authorize = exports.authenticate = void 0;
-const authService_1 = __importDefault(require("@/services/authService"));
+const authService_1 = __importDefault(require("../services/authService"));
 const authenticate = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;

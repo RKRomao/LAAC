@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('support_tickets', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+    table.uuid('id').primary().defaultTo(knex.raw('(UUID())'));
     table.string('title', 200).notNullable();
     table.text('description').notNullable();
     table.enum('status', ['open', 'in_progress', 'resolved', 'closed']).defaultTo('open');

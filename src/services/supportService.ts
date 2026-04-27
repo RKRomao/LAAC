@@ -1,5 +1,5 @@
-import SupportTicket from '@/models/SupportTicket';
-import { CustomError } from '@/middleware/errorHandler';
+import SupportTicket from '../models/SupportTicket';
+import { CustomError } from '../middleware/errorHandler';
 
 export interface CreateTicketData {
   title: string;

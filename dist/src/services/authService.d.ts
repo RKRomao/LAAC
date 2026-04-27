@@ -1,4 +1,4 @@
-import User, { UserRole } from '@/models/User';
+import User, { UserRole } from '../models/User';
 export interface LoginCredentials {
     email: string;
     password: string;

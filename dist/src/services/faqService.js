@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const FAQ_1 = __importDefault(require("@/models/FAQ"));
+const FAQ_1 = __importDefault(require("../models/FAQ"));
 class FAQService {
     async getAllFAQs(query = {}) {
         const { category, search, page = 1, limit = 50 } = query;

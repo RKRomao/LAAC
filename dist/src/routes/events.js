@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
-const eventController_1 = require("@/controllers/eventController");
-const auth_1 = require("@/middleware/auth");
-const validation_1 = require("@/middleware/validation");
+const eventController_1 = require("../controllers/eventController");
+const auth_1 = require("../middleware/auth");
+const validation_1 = require("../middleware/validation");
 const router = (0, express_1.Router)();
 const createEventValidation = [
     (0, express_validator_1.body)('title')

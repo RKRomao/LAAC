@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchTickets = exports.getTicketStats = exports.respondToTicket = exports.assignTicket = exports.getUnassignedTickets = exports.getAssignedTickets = exports.getUserTickets = exports.getCategories = exports.deleteTicket = exports.updateTicket = exports.createTicket = exports.getTicketById = exports.getAllTickets = void 0;
-const supportService_1 = __importDefault(require("@/services/supportService"));
+const supportService_1 = __importDefault(require("../services/supportService"));
 const getAllTickets = async (req, res, next) => {
     try {
         const { status, priority, category, assignedTo, userId, page = '1', limit = '50' } = req.query;

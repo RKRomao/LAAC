@@ -1,5 +1,5 @@
-import Location from '@/models/Location';
-import { CustomError } from '@/middleware/errorHandler';
+import Location from '../models/Location';
+import { CustomError } from '../middleware/errorHandler';
 
 export interface CreateLocationData {
   name: string;
@@ -59,7 +59,7 @@ class LocationService {
     } = query;
 
     let locationQuery = Location.query()
-      .withGraphFetched('[creator(updater)]')
+      .withGraphFetched('[creator, updater]')
       .modify('active');
 
     if (category) {
@@ -129,7 +129,7 @@ class LocationService {
   async getLocationById(id: string) {
     const location = await Location.query()
       .findById(id)
-      .withGraphFetched('[creator(updater)]')
+      .withGraphFetched('[creator, updater]')
       .modify('active');
 
     if (!location) {
@@ -223,7 +223,7 @@ class LocationService {
 
     return await Location.query()
       .findById(updatedLocation.id)
-      .withGraphFetched('[creator(updater)]');
+      .withGraphFetched('[creator, updater]');
   }
 
   async deleteLocation(id: string) {
@@ -301,8 +301,7 @@ class LocationService {
           .orWhere('address', 'ilike', `%${searchTerm}%`);
       })
       .modify('active')
-      .withGraphFetched('[creator]')
-      .limit(limit);
+      .withGraphFetched('[creator]');
 
     if (category) {
       locationQuery = locationQuery.modify('byCategory', category);

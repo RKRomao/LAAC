@@ -1,4 +1,4 @@
-import Location from '@/models/Location';
+import Location from '../models/Location';
 export interface CreateLocationData {
     name: string;
     description: string;

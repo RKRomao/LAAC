@@ -1,5 +1,5 @@
-import FAQ from '@/models/FAQ';
-import { CustomError } from '@/middleware/errorHandler';
+import FAQ from '../models/FAQ';
+import { CustomError } from '../middleware/errorHandler';
 
 export interface CreateFAQData {
   question: string;

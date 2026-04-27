@@ -13,14 +13,14 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const express_session_1 = __importDefault(require("express-session"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const objection_1 = require("objection");
-const auth_1 = __importDefault(require("@/routes/auth"));
-const users_1 = __importDefault(require("@/routes/users"));
-const faq_1 = __importDefault(require("@/routes/faq"));
-const events_1 = __importDefault(require("@/routes/events"));
-const support_1 = __importDefault(require("@/routes/support"));
-const locations_1 = __importDefault(require("@/routes/locations"));
-const errorHandler_1 = require("@/middleware/errorHandler");
-const notFound_1 = require("@/middleware/notFound");
+const auth_1 = __importDefault(require("./routes/auth"));
+const users_1 = __importDefault(require("./routes/users"));
+const faq_1 = __importDefault(require("./routes/faq"));
+const events_1 = __importDefault(require("./routes/events"));
+const support_1 = __importDefault(require("./routes/support"));
+const locations_1 = __importDefault(require("./routes/locations"));
+const errorHandler_1 = require("./middleware/errorHandler");
+const notFound_1 = require("./middleware/notFound");
 const knexfile_1 = __importDefault(require("./knexfile"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -31,10 +31,12 @@ app.use((0, helmet_1.default)({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-            imgSrc: ["'self'", "data:", "https:"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+            imgSrc: ["'self'", "data:", "https:", "https://tile.openstreetmap.org"],
             fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+            connectSrc: ["'self'", "data:", "https://tile.openstreetmap.org", "https://www.openstreetmap.org", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+            frameSrc: ["'self'", "https://www.openstreetmap.org"],
         },
     },
 }));
@@ -62,6 +64,9 @@ app.use((0, express_session_1.default)({
         maxAge: 24 * 60 * 60 * 1000,
     },
 }));
+const passport_1 = __importDefault(require("./config/passport"));
+app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
 app.use(express_1.default.static(path_1.default.join(__dirname, '../public')));
 app.set('views', path_1.default.join(__dirname, '../views'));
 app.set('view engine', 'ejs');
@@ -104,11 +109,14 @@ app.get('/login', (req, res) => {
     });
 });
 app.get('/register', (req, res) => {
+    res.redirect('/login');
+});
+app.get('/forgot-password', (req, res) => {
     if (req.session?.user) {
         return res.redirect('/');
     }
-    res.render('pages/register', {
-        title: 'Registar - LAAC',
+    res.render('pages/forgot-password', {
+        title: 'Recuperar Password - LAAC',
     });
 });
 app.get('/locations', (req, res) => {
@@ -116,6 +124,9 @@ app.get('/locations', (req, res) => {
         title: 'Mapa de Locais - LAAC',
         user: req.session?.user,
     });
+});
+app.get('/favicon.ico', (req, res) => {
+    res.sendFile(path_1.default.join(__dirname, '../public/images/favicon.png'));
 });
 app.get('/health', (req, res) => {
     res.json({

@@ -1,5 +1,5 @@
-import Event from '@/models/Event';
-import EventAttendee from '@/models/EventAttendee';
+import Event from '../models/Event';
+import EventAttendee from '../models/EventAttendee';
 export interface CreateEventData {
     title: string;
     description: string;

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthenticatedRequest } from '@/middleware/auth';
+import { AuthenticatedRequest } from '../middleware/auth';
 export declare const getAllTickets: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const getTicketById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const createTicket: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;

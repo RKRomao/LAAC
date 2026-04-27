@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import authService from '@/services/authService';
-import { AuthenticatedRequest } from '@/middleware/auth';
+import authService from '../services/authService';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {

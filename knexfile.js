@@ -1,0 +1,80 @@
+const path = require('path');
+
+// Determine database type from environment
+const dbType = process.env.NODE_ENV === 'production' ? 'mysql2' : process.env.DB_TYPE || 'sqlite3';
+
+// Base configuration
+const baseConfig = {
+  pool: {
+    min: 2,
+    max: 10,
+  },
+  migrations: {
+    tableName: 'knex_migrations',
+    directory: './database/migrations',
+  },
+  seeds: {
+    directory: './database/seeds',
+  },
+};
+
+// SQLite configuration
+const sqliteConfig = {
+  client: 'sqlite3',
+  connection: {
+    filename: path.join(__dirname, './database/laac_dev.sqlite3'),
+  },
+  useNullAsDefault: true,
+  ...baseConfig,
+};
+
+// PostgreSQL configuration
+const postgresConfig = {
+  client: 'postgresql',
+  connection: {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || 'laac_dev',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'password',
+  },
+  ...baseConfig,
+};
+
+// MariaDB/MySQL configuration
+const mysqlConfig = {
+  client: 'mysql2',
+  connection: {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306'),
+    database: process.env.DB_NAME || 'laac_dev',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'password',
+    charset: 'utf8mb4',
+  },
+  ...baseConfig,
+};
+
+const selectedConfig = dbType === 'mysql2' ? mysqlConfig : dbType === 'sqlite3' ? sqliteConfig : postgresConfig;
+
+const config = {
+  development: selectedConfig,
+
+  staging: {
+    ...selectedConfig,
+    connection: {
+      ...selectedConfig.connection,
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    },
+  },
+
+  production: {
+    ...selectedConfig,
+    connection: {
+      ...selectedConfig.connection,
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    },
+  },
+};
+
+module.exports = config;

@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User, { UserRole } from '@/models/User';
-import { CustomError } from '@/middleware/errorHandler';
+import User, { UserRole } from '../models/User';
+import { CustomError } from '../middleware/errorHandler';
 
 export interface LoginCredentials {
   email: string;

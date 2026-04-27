@@ -11,9 +11,9 @@ import {
   findWithinBounds,
   searchLocations,
   calculateDistance,
-} from '@/controllers/locationController';
-import { authenticate, authorize } from '@/middleware/auth';
-import { validate } from '@/middleware/validation';
+} from '../controllers/locationController';
+import { authenticate, authorize } from '../middleware/auth';
+import { validate } from '../middleware/validation';
 
 const router = Router();
 

@@ -14,9 +14,9 @@ import {
   respondToTicket,
   getTicketStats,
   searchTickets,
-} from '@/controllers/supportController';
-import { authenticate, authorize } from '@/middleware/auth';
-import { validate } from '@/middleware/validation';
+} from '../controllers/supportController';
+import { authenticate, authorize } from '../middleware/auth';
+import { validate } from '../middleware/validation';
 
 const router = Router();
 

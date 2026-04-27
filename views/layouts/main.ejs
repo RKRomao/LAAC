@@ -102,7 +102,7 @@
             </div>
         <% } %>
 
-        <%- body %>
+        <%- typeof bodyContent !== 'undefined' ? bodyContent : '' %>
     </main>
 
     <!-- Footer -->

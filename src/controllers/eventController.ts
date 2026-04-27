@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import eventService from '@/services/eventService';
-import { AuthenticatedRequest } from '@/middleware/auth';
+import eventService from '../services/eventService';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export const getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {

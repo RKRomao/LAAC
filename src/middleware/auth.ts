@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import authService from '@/services/authService';
-import { CustomError } from '@/middleware/errorHandler';
+import authService from '../services/authService';
+import { CustomError } from '../middleware/errorHandler';
 
 export interface AuthenticatedRequest extends Request {
   user?: any;

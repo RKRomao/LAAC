@@ -1,10 +1,11 @@
 import type { Knex } from 'knex';
+import path from 'path';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 // Determine database type from environment
-const dbType = process.env.DB_TYPE || 'postgresql'; // 'postgresql' or 'mysql2'
+const dbType = process.env.NODE_ENV === 'production' ? 'mysql2' : process.env.DB_TYPE || 'sqlite3'; // 'postgresql', 'mysql2', or 'sqlite3'
 
 // Base configuration
 const baseConfig = {
@@ -19,6 +20,16 @@ const baseConfig = {
   seeds: {
     directory: './database/seeds',
   },
+};
+
+// SQLite configuration
+const sqliteConfig: Knex.Config = {
+  client: 'sqlite3',
+  connection: {
+    filename: path.join(__dirname, '../database/laac_dev.sqlite3'),
+  },
+  useNullAsDefault: true,
+  ...baseConfig,
 };
 
 // PostgreSQL configuration
@@ -48,7 +59,7 @@ const mysqlConfig: Knex.Config = {
   ...baseConfig,
 };
 
-const selectedConfig = dbType === 'mysql2' ? mysqlConfig : postgresConfig;
+const selectedConfig = dbType === 'mysql2' ? mysqlConfig : dbType === 'sqlite3' ? sqliteConfig : postgresConfig;
 
 const config: { [key: string]: Knex.Config } = {
   development: selectedConfig,

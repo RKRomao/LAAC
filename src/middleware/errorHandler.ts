@@ -37,8 +37,22 @@ export const errorHandler = (
     error = { name: 'ValidationError', message, statusCode: 400 };
   }
 
-  res.status(error.statusCode || 500).json({
-    success: false,
-    error: error.message || 'Server Error',
+  // Check if request expects JSON (API calls)
+  if (req.xhr || req.headers.accept?.includes('application/json')) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message || 'Server Error',
+    });
+  }
+
+  // Render HTML error page for browser requests
+  res.status(error.statusCode || 500).render('pages/error', {
+    title: `${error.statusCode || 500} - Erro`,
+    error: {
+      statusCode: error.statusCode || 500,
+      message: error.message || 'Server Error',
+      stack: error.stack
+    }
   });
+  return;
 };

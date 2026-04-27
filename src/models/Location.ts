@@ -34,7 +34,7 @@ export default class Location extends BaseModel {
       phone: { type: ['string', 'null'], maxLength: 20 },
       email: { type: ['string', 'null'], maxLength: 255 },
       openingHours: { type: ['string', 'null'], maxLength: 255 },
-      isActive: { type: 'boolean', default: true },
+      is_active: { type: 'boolean', default: true },
       createdBy: { type: 'string' },
       updatedBy: { type: ['string', 'null'] },
       createdAt: { type: 'string' },
@@ -63,7 +63,7 @@ export default class Location extends BaseModel {
 
   static modifiers = {
     active(builder: any) {
-      return builder.where('isActive', true);
+      return builder.where('is_active', true);
     },
     byCategory(builder: any, category: string) {
       return builder.where('category', category);
@@ -71,19 +71,18 @@ export default class Location extends BaseModel {
     nearPoint(builder: any, lat: number, lng: number, radiusKm: number = 5) {
       return builder
         .whereRaw(`
-          ST_DWithin(
+          ST_Distance_Sphere(
             coordinates, 
-            ST_MakePoint(?, ?)::geography, 
-            ?
-          )
+            POINT(?, ?)
+          ) <= ?
         `, [lng, lat, radiusKm * 1000]); // Convert km to meters
     },
     withinBoundingBox(builder: any, minLat: number, minLng: number, maxLat: number, maxLng: number) {
       return builder
         .whereRaw(`
-          ST_Within(
-            coordinates,
-            ST_MakeEnvelope(?, ?, ?, ?, 4326)
+          MBRContains(
+            ST_Envelope(ST_GeomFromText('LINESTRING(? ?, ? ?)')),
+            coordinates
           )
         `, [minLng, minLat, maxLng, maxLat]);
     },
@@ -91,15 +90,35 @@ export default class Location extends BaseModel {
 
   // Virtual properties
   get latitude(): number | null {
-    if (this.coordinates && typeof this.coordinates === 'object' && 'y' in this.coordinates) {
-      return this.coordinates.y;
+    if (this.coordinates && typeof this.coordinates === 'object') {
+      // MariaDB/MySQL format: { x: longitude, y: latitude }
+      if ('y' in this.coordinates) {
+        return this.coordinates.y;
+      }
+      // Handle string format from database
+      if (typeof this.coordinates === 'string') {
+        const match = this.coordinates.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/i);
+        if (match) {
+          return parseFloat(match[2]); // latitude is second value
+        }
+      }
     }
     return null;
   }
 
   get longitude(): number | null {
-    if (this.coordinates && typeof this.coordinates === 'object' && 'x' in this.coordinates) {
-      return this.coordinates.x;
+    if (this.coordinates && typeof this.coordinates === 'object') {
+      // MariaDB/MySQL format: { x: longitude, y: latitude }
+      if ('x' in this.coordinates) {
+        return this.coordinates.x;
+      }
+      // Handle string format from database
+      if (typeof this.coordinates === 'string') {
+        const match = this.coordinates.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/i);
+        if (match) {
+          return parseFloat(match[1]); // longitude is first value
+        }
+      }
     }
     return null;
   }
@@ -122,9 +141,9 @@ export default class Location extends BaseModel {
     }
 
     return await query.orderByRaw(`
-      ST_Distance(
+      ST_Distance_Sphere(
         coordinates, 
-        ST_MakePoint(?, ?)::geography
+        POINT(?, ?)
       )
     `, [lng, lat]);
   }

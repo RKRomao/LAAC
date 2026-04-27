@@ -17,10 +17,21 @@ const errorHandler = (err, req, res, next) => {
         const message = Object.values(err.errors).map((val) => val.message).join(', ');
         error = { name: 'ValidationError', message, statusCode: 400 };
     }
-    res.status(error.statusCode || 500).json({
-        success: false,
-        error: error.message || 'Server Error',
+    if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(error.statusCode || 500).json({
+            success: false,
+            error: error.message || 'Server Error',
+        });
+    }
+    res.status(error.statusCode || 500).render('pages/error', {
+        title: `${error.statusCode || 500} - Erro`,
+        error: {
+            statusCode: error.statusCode || 500,
+            message: error.message || 'Server Error',
+            stack: error.stack
+        }
     });
+    return;
 };
 exports.errorHandler = errorHandler;
 //# sourceMappingURL=errorHandler.js.map

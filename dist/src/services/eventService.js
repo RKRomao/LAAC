@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Event_1 = __importDefault(require("@/models/Event"));
-const EventAttendee_1 = __importDefault(require("@/models/EventAttendee"));
+const Event_1 = __importDefault(require("../models/Event"));
+const EventAttendee_1 = __importDefault(require("../models/EventAttendee"));
 class EventService {
     async getAllEvents(query = {}) {
         const { category, startDate, endDate, status, page = 1, limit = 50 } = query;

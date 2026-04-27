@@ -10,7 +10,7 @@ RUN apk add --no-cache libc6-compat
 
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Build the application
 FROM base AS builder
@@ -20,7 +20,8 @@ COPY . .
 # Create .env file if it doesn't exist
 RUN if [ ! -f .env ]; then echo "NODE_ENV=production" > .env; fi
 
-# Build TypeScript
+# Install TypeScript globally and build
+RUN npm install -g typescript
 RUN npm run build
 
 # Production image
@@ -51,4 +52,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node dist/healthcheck.js || exit 1
 
 # Start the application
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/src/server.js"]

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import supportService from '@/services/supportService';
-import { AuthenticatedRequest } from '@/middleware/auth';
+import supportService from '../services/supportService';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export const getAllTickets = async (req: Request, res: Response, next: NextFunction) => {
   try {

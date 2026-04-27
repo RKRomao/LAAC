@@ -6,14 +6,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const BaseModel_1 = __importDefault(require("./BaseModel"));
 class Location extends BaseModel_1.default {
     get latitude() {
-        if (this.coordinates && typeof this.coordinates === 'object' && 'y' in this.coordinates) {
-            return this.coordinates.y;
+        if (this.coordinates && typeof this.coordinates === 'object') {
+            if ('y' in this.coordinates) {
+                return this.coordinates.y;
+            }
+            if (typeof this.coordinates === 'string') {
+                const match = this.coordinates.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/i);
+                if (match) {
+                    return parseFloat(match[2]);
+                }
+            }
         }
         return null;
     }
     get longitude() {
-        if (this.coordinates && typeof this.coordinates === 'object' && 'x' in this.coordinates) {
-            return this.coordinates.x;
+        if (this.coordinates && typeof this.coordinates === 'object') {
+            if ('x' in this.coordinates) {
+                return this.coordinates.x;
+            }
+            if (typeof this.coordinates === 'string') {
+                const match = this.coordinates.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/i);
+                if (match) {
+                    return parseFloat(match[1]);
+                }
+            }
         }
         return null;
     }
@@ -31,9 +47,9 @@ class Location extends BaseModel_1.default {
             query = query.modify('byCategory', category);
         }
         return await query.orderByRaw(`
-      ST_Distance(
+      ST_Distance_Sphere(
         coordinates, 
-        ST_MakePoint(?, ?)::geography
+        POINT(?, ?)
       )
     `, [lng, lat]);
     }
@@ -82,7 +98,7 @@ Location.jsonSchema = {
         phone: { type: ['string', 'null'], maxLength: 20 },
         email: { type: ['string', 'null'], maxLength: 255 },
         openingHours: { type: ['string', 'null'], maxLength: 255 },
-        isActive: { type: 'boolean', default: true },
+        is_active: { type: 'boolean', default: true },
         createdBy: { type: 'string' },
         updatedBy: { type: ['string', 'null'] },
         createdAt: { type: 'string' },
@@ -109,7 +125,7 @@ Location.relationMappings = {
 };
 Location.modifiers = {
     active(builder) {
-        return builder.where('isActive', true);
+        return builder.where('is_active', true);
     },
     byCategory(builder, category) {
         return builder.where('category', category);
@@ -117,19 +133,18 @@ Location.modifiers = {
     nearPoint(builder, lat, lng, radiusKm = 5) {
         return builder
             .whereRaw(`
-          ST_DWithin(
+          ST_Distance_Sphere(
             coordinates, 
-            ST_MakePoint(?, ?)::geography, 
-            ?
-          )
+            POINT(?, ?)
+          ) <= ?
         `, [lng, lat, radiusKm * 1000]);
     },
     withinBoundingBox(builder, minLat, minLng, maxLat, maxLng) {
         return builder
             .whereRaw(`
-          ST_Within(
-            coordinates,
-            ST_MakeEnvelope(?, ?, ?, ?, 4326)
+          MBRContains(
+            ST_Envelope(ST_GeomFromText('LINESTRING(? ?, ? ?)')),
+            coordinates
           )
         `, [minLng, minLat, maxLng, maxLat]);
     },

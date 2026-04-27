@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const SupportTicket_1 = __importDefault(require("@/models/SupportTicket"));
+const SupportTicket_1 = __importDefault(require("../models/SupportTicket"));
 class SupportService {
     async getAllTickets(query = {}) {
         const { status, priority, category, assignedTo, userId, page = 1, limit = 50, } = query;

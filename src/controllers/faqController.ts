@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import faqService from '@/services/faqService';
-import { AuthenticatedRequest } from '@/middleware/auth';
+import faqService from '../services/faqService';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export const getAllFAQs = async (req: Request, res: Response, next: NextFunction) => {
   try {

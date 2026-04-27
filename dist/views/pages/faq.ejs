@@ -1,0 +1,549 @@
+<%- include('../layouts/main') %>
+
+<% contentFor('body') { %>
+<!-- Header Section -->
+<section class="faq-header mb-5">
+    <div class="text-center">
+        <h1 class="display-5 fw-bold mb-3">
+            <i class="bi bi-question-circle-fill me-3"></i>
+            Perguntas Frequentes
+        </h1>
+        <p class="lead text-muted">
+            Encontre respostas para as suas dúvidas sobre a vida académica e a cidade da Covilhã
+        </p>
+    </div>
+</section>
+
+<!-- Search Section -->
+<section class="search-section mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form id="faqSearchForm">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Pesquisar FAQs...">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-search me-2"></i>Pesquisar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section mb-5">
+    <h3 class="mb-4">
+        <i class="bi bi-folder-fill me-2"></i>
+        Categorias
+    </h3>
+    <div class="row" id="categoriesContainer">
+        <!-- Categories will be loaded dynamically -->
+    </div>
+</section>
+
+<!-- Popular FAQs Section -->
+<section class="popular-faqs-section mb-5">
+    <h3 class="mb-4">
+        <i class="bi bi-star-fill me-2"></i>
+        FAQs Populares
+    </h3>
+    <div class="accordion" id="popularFAQsAccordion">
+        <!-- Popular FAQs will be loaded dynamically -->
+    </div>
+</section>
+
+<!-- All FAQs Section -->
+<section class="all-faqs-section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>
+            <i class="bi bi-list-ul me-2"></i>
+            Todas as FAQs
+        </h3>
+        <div class="d-flex gap-2">
+            <select class="form-select" id="categoryFilter" style="width: auto;">
+                <option value="">Todas as categorias</option>
+            </select>
+            <button class="btn btn-outline-primary" id="expandAllBtn">
+                <i class="bi bi-arrows-expand me-1"></i>Expandir Todas
+            </button>
+        </div>
+    </div>
+    
+    <div class="accordion" id="allFAQsAccordion">
+        <!-- FAQs will be loaded dynamically -->
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center" id="paginationContainer">
+            <!-- Pagination will be loaded dynamically -->
+        </ul>
+    </nav>
+</section>
+
+<!-- Loading State -->
+<div id="loadingState" class="text-center py-5" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">A carregar...</span>
+    </div>
+    <p class="mt-2 text-muted">A carregar FAQs...</p>
+</div>
+
+<!-- No Results State -->
+<div id="noResultsState" class="text-center py-5" style="display: none;">
+    <i class="bi bi-search text-muted fs-1"></i>
+    <h4 class="mt-3 text-muted">Nenhum resultado encontrado</h4>
+    <p class="text-muted">Tente usar termos diferentes ou explore as categorias disponíveis.</p>
+</div>
+
+<% if (user && (user.role === 'admin' || user.role === 'core_team')) { %>
+<!-- Admin Section -->
+<section class="admin-section mt-5">
+    <div class="card border-warning">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="bi bi-gear-fill me-2"></i>
+                Administração de FAQs
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createFAQModal">
+                    <i class="bi bi-plus-circle me-2"></i>Nova FAQ
+                </button>
+                <button class="btn btn-outline-secondary" id="manageFAQsBtn">
+                    <i class="bi bi-pencil-square me-2"></i>Gerir FAQs
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Create FAQ Modal -->
+<div class="modal fade" id="createFAQModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Criar Nova FAQ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createFAQForm">
+                    <div class="mb-3">
+                        <label for="faqQuestion" class="form-label">Pergunta</label>
+                        <textarea class="form-control" id="faqQuestion" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="faqAnswer" class="form-label">Resposta</label>
+                        <textarea class="form-control" id="faqAnswer" rows="5" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="faqCategory" class="form-label">Categoria</label>
+                            <select class="form-select" id="faqCategory" required>
+                                <option value="">Selecione uma categoria</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="faqOrder" class="form-label">Ordem</label>
+                            <input type="number" class="form-control" id="faqOrder" min="0" value="0">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveFAQBtn">Guardar FAQ</button>
+            </div>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<script>
+// Global variables
+let currentPage = 1;
+let currentCategory = '';
+let currentSearch = '';
+let allFAQs = [];
+let categories = [];
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFAQPage();
+});
+
+async function initializeFAQPage() {
+    showLoading();
+    
+    try {
+        await Promise.all([
+            loadCategories(),
+            loadPopularFAQs(),
+            loadFAQs()
+        ]);
+        
+        hideLoading();
+        setupEventListeners();
+    } catch (error) {
+        console.error('Error initializing FAQ page:', error);
+        showError('Erro ao carregar FAQs. Por favor, tente novamente.');
+        hideLoading();
+    }
+}
+
+async function loadCategories() {
+    try {
+        const response = await apiRequest('/api/faq/categories');
+        categories = response.data;
+        renderCategories();
+        updateCategoryFilter();
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
+
+function renderCategories() {
+    const container = document.getElementById('categoriesContainer');
+    container.innerHTML = categories.map(category => `
+        <div class="col-md-3 mb-3">
+            <div class="card category-card h-100 text-center" data-category="${category}">
+                <div class="card-body">
+                    <div class="category-icon mb-3">
+                        <i class="bi bi-folder-fill text-primary fs-2"></i>
+                    </div>
+                    <h6 class="card-title">${category}</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="filterByCategory('${category}')">
+                        <i class="bi bi-arrow-right me-1"></i>Ver FAQs
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateCategoryFilter() {
+    const filter = document.getElementById('categoryFilter');
+    if (filter) {
+        filter.innerHTML = '<option value="">Todas as categorias</option>' + 
+            categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    }
+}
+
+async function loadPopularFAQs() {
+    try {
+        const response = await apiRequest('/api/faq/popular?limit=5');
+        renderPopularFAQs(response.data);
+    } catch (error) {
+        console.error('Error loading popular FAQs:', error);
+    }
+}
+
+function renderPopularFAQs(faqs) {
+    const container = document.getElementById('popularFAQsAccordion');
+    container.innerHTML = faqs.map((faq, index) => `
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#popular-${faq.id}">
+                    <i class="bi bi-question-circle me-2"></i>
+                    ${faq.question}
+                </button>
+            </h2>
+            <div id="popular-${faq.id}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                 data-bs-parent="#popularFAQsAccordion">
+                <div class="accordion-body">
+                    <div class="faq-answer">${faq.answer}</div>
+                    <div class="faq-meta mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-folder me-1"></i>${faq.category}
+                            <% if (user && (user.role === 'admin' || user.role === 'core_team')) { %>
+                            <span class="ms-3">
+                                <i class="bi bi-person me-1"></i>${faq.creator?.name || 'Desconhecido'}
+                            </span>
+                            <% } %>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function loadFAQs(page = 1, category = '', search = '') {
+    try {
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: '20'
+        });
+        
+        if (category) params.append('category', category);
+        if (search) params.append('search', search);
+        
+        const response = await apiRequest(`/api/faq?${params.toString()}`);
+        allFAQs = response.data.data;
+        renderFAQs(allFAQs);
+        renderPagination(response.data.pagination);
+    } catch (error) {
+        console.error('Error loading FAQs:', error);
+        showError('Erro ao carregar FAQs.');
+    }
+}
+
+function renderFAQs(faqs) {
+    const container = document.getElementById('allFAQsAccordion');
+    
+    if (faqs.length === 0) {
+        document.getElementById('noResultsState').style.display = 'block';
+        container.innerHTML = '';
+        return;
+    }
+    
+    document.getElementById('noResultsState').style.display = 'none';
+    container.innerHTML = faqs.map((faq, index) => `
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button ${index > 0 ? 'collapsed' : ''}" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#faq-${faq.id}">
+                    <i class="bi bi-question-circle me-2"></i>
+                    ${faq.question}
+                </button>
+            </h2>
+            <div id="faq-${faq.id}" class="accordion-collapse collapse ${index === 0 ? 'show' : ''}" 
+                 data-bs-parent="#allFAQsAccordion">
+                <div class="accordion-body">
+                    <div class="faq-answer">${faq.answer}</div>
+                    <div class="faq-meta mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-folder me-1"></i>${faq.category}
+                            <% if (user && (user.role === 'admin' || user.role === 'core_team')) { %>
+                            <span class="ms-3">
+                                <i class="bi bi-person me-1"></i>${faq.creator?.name || 'Desconhecido'}
+                            </span>
+                            <div class="float-end">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="editFAQ('${faq.id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteFAQ('${faq.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <% } %>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderPagination(pagination) {
+    const container = document.getElementById('paginationContainer');
+    
+    if (pagination.pages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    
+    // Previous button
+    html += `
+        <li class="page-item ${pagination.page === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${pagination.page - 1})">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+    `;
+    
+    // Page numbers
+    for (let i = 1; i <= pagination.pages; i++) {
+        if (i === 1 || i === pagination.pages || (i >= pagination.page - 2 && i <= pagination.page + 2)) {
+            html += `
+                <li class="page-item ${i === pagination.page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>
+            `;
+        } else if (i === pagination.page - 3 || i === pagination.page + 3) {
+            html += `
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            `;
+        }
+    }
+    
+    // Next button
+    html += `
+        <li class="page-item ${pagination.page === pagination.pages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${pagination.page + 1})">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    `;
+    
+    container.innerHTML = html;
+}
+
+function setupEventListeners() {
+    // Search form
+    document.getElementById('faqSearchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const searchTerm = document.getElementById('searchInput').value.trim();
+        performSearch(searchTerm);
+    });
+    
+    // Category filter
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        currentCategory = this.value;
+        currentPage = 1;
+        loadFAQs(currentPage, currentCategory, currentSearch);
+    });
+    
+    // Expand/Collapse all
+    document.getElementById('expandAllBtn').addEventListener('click', function() {
+        const allCollapsed = document.querySelectorAll('.accordion-button.collapsed');
+        if (allCollapsed.length > 0) {
+            // Expand all
+            document.querySelectorAll('.accordion-button').forEach(btn => {
+                btn.classList.remove('collapsed');
+                btn.setAttribute('aria-expanded', 'true');
+            });
+            document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+                collapse.classList.add('show');
+            });
+            this.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i>Colapsar Todas';
+        } else {
+            // Collapse all
+            document.querySelectorAll('.accordion-button:not(:first-child)').forEach(btn => {
+                btn.classList.add('collapsed');
+                btn.setAttribute('aria-expanded', 'false');
+            });
+            document.querySelectorAll('.accordion-collapse:not(:first-child)').forEach(collapse => {
+                collapse.classList.remove('show');
+            });
+            this.innerHTML = '<i class="bi bi-arrows-expand me-1"></i>Expandir Todas';
+        }
+    });
+    
+    <% if (user && (user.role === 'admin' || user.role === 'core_team')) { %>
+    // Create FAQ form
+    document.getElementById('saveFAQBtn').addEventListener('click', function() {
+        createFAQ();
+    });
+    
+    // Update category options in modal
+    updateModalCategories();
+    <% } %>
+}
+
+function filterByCategory(category) {
+    currentCategory = category;
+    currentPage = 1;
+    document.getElementById('categoryFilter').value = category;
+    loadFAQs(currentPage, currentCategory, currentSearch);
+    
+    // Scroll to FAQ section
+    document.querySelector('.all-faqs-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function performSearch(searchTerm) {
+    currentSearch = searchTerm;
+    currentPage = 1;
+    
+    showLoading();
+    try {
+        await loadFAQs(currentPage, currentCategory, currentSearch);
+        hideLoading();
+    } catch (error) {
+        hideLoading();
+        showError('Erro na pesquisa. Por favor, tente novamente.');
+    }
+}
+
+function changePage(page) {
+    currentPage = page;
+    loadFAQs(currentPage, currentCategory, currentSearch);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+<% if (user && (user.role === 'admin' || user.role === 'core_team')) { %>
+function updateModalCategories() {
+    const select = document.getElementById('faqCategory');
+    if (select) {
+        select.innerHTML = '<option value="">Selecione uma categoria</option>' + 
+            categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    }
+}
+
+async function createFAQ() {
+    const question = document.getElementById('faqQuestion').value.trim();
+    const answer = document.getElementById('faqAnswer').value.trim();
+    const category = document.getElementById('faqCategory').value;
+    const order = parseInt(document.getElementById('faqOrder').value) || 0;
+    
+    if (!question || !answer || !category) {
+        showError('Por favor, preencha todos os campos obrigatórios.');
+        return;
+    }
+    
+    try {
+        await apiRequest('/api/faq', {
+            method: 'POST',
+            body: JSON.stringify({ question, answer, category, order })
+        });
+        
+        // Close modal and reset form
+        bootstrap.Modal.getInstance(document.getElementById('createFAQModal')).hide();
+        document.getElementById('createFAQForm').reset();
+        
+        // Reload FAQs
+        await loadFAQs(currentPage, currentCategory, currentSearch);
+        showMessage('FAQ criada com sucesso!', 'success');
+    } catch (error) {
+        showError('Erro ao criar FAQ. Por favor, tente novamente.');
+    }
+}
+
+async function editFAQ(id) {
+    // Implementation for editing FAQ
+    console.log('Edit FAQ:', id);
+}
+
+async function deleteFAQ(id) {
+    if (!confirm('Tem certeza que deseja eliminar esta FAQ?')) {
+        return;
+    }
+    
+    try {
+        await apiRequest(`/api/faq/${id}`, { method: 'DELETE' });
+        await loadFAQs(currentPage, currentCategory, currentSearch);
+        showMessage('FAQ eliminada com sucesso!', 'success');
+    } catch (error) {
+        showError('Erro ao eliminar FAQ. Por favor, tente novamente.');
+    }
+}
+<% } %>
+
+// Utility functions
+function showLoading() {
+    document.getElementById('loadingState').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loadingState').style.display = 'none';
+}
+
+function showError(message) {
+    showMessage(message, 'error');
+}
+</script>
+<% } %>

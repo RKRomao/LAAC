@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import locationService from '@/services/locationService';
-import { AuthenticatedRequest } from '@/middleware/auth';
+import locationService from '../services/locationService';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 export const getAllLocations = async (req: Request, res: Response, next: NextFunction) => {
   try {

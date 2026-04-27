@@ -24,66 +24,42 @@
             <a class="navbar-brand fw-bold" href="/">
                 <i class="bi bi-mortarboard-fill me-2"></i>LAAC
             </a>
-            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            <i class="bi bi-house-fill me-1"></i> Início
-                        </a>
+                        <a class="nav-link" href="/">Início</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/faq">
-                            <i class="bi bi-question-circle-fill me-1"></i> FAQ
-                        </a>
+                        <a class="nav-link active" href="/locations">Mapa</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/events">
-                            <i class="bi bi-calendar-event-fill me-1"></i> Eventos
-                        </a>
+                        <a class="nav-link" href="/events">Eventos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/locations">
-                            <i class="bi bi-geo-alt-fill me-1"></i> Mapa
-                        </a>
+                        <a class="nav-link" href="/faq">FAQ</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/support">
-                            <i class="bi bi-headset me-1"></i> Suporte
-                        </a>
+                        <a class="nav-link" href="/support">Suporte</a>
                     </li>
                 </ul>
-                
                 <ul class="navbar-nav">
-                    <% if (user) { %>
+                    <% if (typeof user !== 'undefined' && user) { %>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle me-1"></i> <%= user.name %>
+                                <i class="bi bi-person-circle me-1"></i><%= user.name %>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/profile">
-                                    <i class="bi bi-person me-2"></i> Perfil
-                                </a></li>
+                                <li><a class="dropdown-item" href="/profile">Perfil</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="logout()">
-                                    <i class="bi bi-box-arrow-right me-2"></i> Sair
-                                </a></li>
+                                <li><a class="dropdown-item" href="/logout">Sair</a></li>
                             </ul>
                         </li>
                     <% } else { %>
                         <li class="nav-item">
-                            <a class="nav-link" href="/login">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/register">
-                                <i class="bi bi-person-plus me-1"></i> Registar
-                            </a>
+                            <a class="nav-link" href="/login">Login</a>
                         </li>
                     <% } %>
                 </ul>
@@ -92,118 +68,162 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="container-fluid p-0">
-        <% if (typeof messages !== 'undefined' && messages.error) { %>
-            <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <%= messages.error %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <% } %>
-        
-        <% if (typeof messages !== 'undefined' && messages.success) { %>
-            <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <%= messages.success %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <% } %>
-
-        <!-- Map Controls -->
-        <div class="map-controls bg-white shadow-sm p-3 m-3 rounded">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label for="searchInput" class="form-label">
-                        <i class="bi bi-search me-1"></i> Pesquisar Locais
-                    </label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="searchInput" placeholder="Digite o nome do local...">
-                        <button class="btn btn-outline-primary" type="button" id="searchBtn">
-                            <i class="bi bi-search"></i>
-                        </button>
+    <main class="container-fluid mt-4">
+        <div class="row">
+            <!-- Navigation Panel -->
+            <div class="col-lg-4 col-md-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-geo-alt-fill me-2"></i>
+                            Navegação UBI
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Location Selection -->
+                        <div class="mb-4">
+                            <label for="fromLocation" class="form-label">
+                                <i class="bi bi-geo-alt me-1"></i> Partida
+                            </label>
+                            <div class="input-group">
+                                <select class="form-select" id="fromLocation">
+                                    <option value="">Escolher local de partida...</option>
+                                    <option value="current-location">📍 Minha Localização Atual</option>
+                                </select>
+                                <button class="btn btn-outline-primary" type="button" id="getCurrentLocationBtn" title="Obter minha localização">
+                                    <i class="bi bi-crosshair"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Pode escolher um local específico ou usar sua localização atual como ponto de partida</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="toLocation" class="form-label">
+                                <i class="bi bi-geo-alt me-1"></i> Destino
+                            </label>
+                            <select class="form-select" id="toLocation">
+                                <option value="">Escolher local de destino...</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 mb-4">
+                            <button class="btn btn-primary" id="showRouteBtn" disabled>
+                                <i class="bi bi-map me-2"></i>Mostrar no Mapa
+                            </button>
+                            <button class="btn btn-success" id="getDirectionsBtn" disabled>
+                                <i class="bi bi-directions me-2"></i>Direções Google Maps
+                            </button>
+                        </div>
+                        
+                        <!-- Location Info -->
+                        <div id="locationInfo" class="alert alert-info d-none">
+                            <h6 class="alert-heading">Informações do Destino</h6>
+                            <div id="locationDetails"></div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="col-md-3">
-                    <label for="categoryFilter" class="form-label">
-                        <i class="bi bi-funnel me-1"></i> Categoria
-                    </label>
-                    <select class="form-select" id="categoryFilter">
-                        <option value="">Todas as Categorias</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-3">
-                    <label for="radiusFilter" class="form-label">
-                        <i class="bi bi-radar me-1"></i> Raio (km)
-                    </label>
-                    <select class="form-select" id="radiusFilter">
-                        <option value="1">1 km</option>
-                        <option value="5" selected>5 km</option>
-                        <option value="10">10 km</option>
-                        <option value="20">20 km</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label d-block">&nbsp;</label>
-                    <div class="btn-group w-100" role="group">
-                        <button class="btn btn-primary" id="locateBtn" title="Minha Localização">
-                            <i class="bi bi-geo-alt"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary" id="resetBtn" title="Redefinir">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
+                <!-- Quick Locations -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-building me-2"></i>
+                            Locais Rápidos
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group" id="quickLocations">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Map Container -->
-        <div id="map" class="map-container"></div>
-
-        <!-- Location List -->
-        <div class="location-list bg-white shadow-sm m-3 rounded p-3">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">
-                    <i class="bi bi-pin-map-fill me-2"></i>
-                    Locais Próximos
-                    <span class="badge bg-primary ms-2" id="locationCount">0</span>
-                </h5>
-                <button class="btn btn-sm btn-outline-secondary" id="toggleListBtn">
-                    <i class="bi bi-chevron-up"></i>
-                </button>
             </div>
             
-            <div id="locationListContent" class="row g-3">
-                <!-- Location cards will be inserted here -->
+            <!-- Map Container -->
+            <div class="col-lg-8 col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-map-fill me-2"></i>
+                            Mapa da Covilhã
+                        </h5>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-light" id="resetMapBtn" title="Resetar Mapa">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                            <button class="btn btn-outline-light" id="locateMeBtn" title="Minha Localização">
+                                <i class="bi bi-geo-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="map" style="height: 600px; width: 100%;"></div>
+                    </div>
+                </div>
+                
+                <!-- Map Legend -->
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">Legenda</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-primary rounded-circle me-2" style="width: 12px; height: 12px;"></span>
+                                    <small>Educação</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-success rounded-circle me-2" style="width: 12px; height: 12px;"></span>
+                                    <small>Saúde</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-info rounded-circle me-2" style="width: 12px; height: 12px;"></span>
+                                    <small>Desporto</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-warning rounded-circle me-2" style="width: 12px; height: 12px;"></span>
+                                    <small>Cultura</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-secondary rounded-circle me-2" style="width: 12px; height: 12px;"></span>
+                                    <small>Alojamento</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-danger rounded-circle me-2" style="width: 12px; height: 12px;"></span>
+                                    <small>Outros</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light mt-5 py-4">
+    <footer class="bg-dark text-white mt-5 py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <h5><i class="bi bi-mortarboard-fill me-2"></i>LAAC</h5>
-                    <p class="text-muted">Liga de Apoio ao Académico da Covilhã</p>
-                    <p class="small">Ajudando novos alunos a integrar-se na vida académica e na cidade da Covilhã.</p>
-                </div>
-                <div class="col-md-4">
-                    <h5>Links Úteis</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="/faq" class="text-muted text-decoration-none">FAQ</a></li>
-                        <li><a href="/events" class="text-muted text-decoration-none">Eventos</a></li>
-                        <li><a href="/support" class="text-muted text-decoration-none">Suporte</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Contacto</h5>
-                    <p class="text-muted">
-                        <i class="bi bi-envelope me-2"></i>contacto@laac.pt<br>
-                        <i class="bi bi-telephone me-2"></i>+351 123 456 789
+                    <p class="small">Liga de Apoio ao Académico da Covilhã</p>
+                    <p class="small mb-0">
+                        <i class="bi bi-envelope me-1"></i> laac@ubi.pt<br>
+                        <i class="bi bi-telephone me-1"></i> +351 275 319 700
                     </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h6>Links Úteis</h6>
+                    <div class="d-flex flex-column align-items-md-end gap-2">
+                        <a href="https://www.ubi.pt" target="_blank" class="text-white text-decoration-none small">
+                            <i class="bi bi-globe me-1"></i> Universidade da Beira Interior
+                        </a>
+                        <a href="https://www.ubi.pt/Pagina/Faculdades" target="_blank" class="text-white text-decoration-none small">
+                            <i class="bi bi-building me-1"></i> Faculdades UBI
+                        </a>
+                    </div>
                 </div>
             </div>
             <hr class="bg-secondary">
@@ -217,86 +237,20 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Custom JS -->
-    <script src="/js/main.js"></script>
-    
-    <style>
-        .map-container {
-            height: 600px;
-            width: 100%;
-        }
-        
-        .map-controls {
-            position: relative;
-            z-index: 1000;
-        }
-        
-        .location-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .location-card {
-            transition: transform 0.2s ease;
-            cursor: pointer;
-        }
-        
-        .location-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .custom-marker {
-            background: #007bff;
-            border: 2px solid white;
-            border-radius: 50%;
-            width: 12px;
-            height: 12px;
-        }
-        
-        .marker-emergency {
-            background: #dc3545;
-        }
-        
-        .marker-education {
-            background: #28a745;
-        }
-        
-        .marker-health {
-            background: #fd7e14;
-        }
-        
-        .marker-shopping {
-            background: #6f42c1;
-        }
-        
-        .marker-transport {
-            background: #20c997;
-        }
-        
-        .marker-food {
-            background: #e83e8c;
-        }
-        
-        .marker-accommodation {
-            background: #6c757d;
-        }
-        
-        .marker-other {
-            background: #17a2b8;
-        }
-    </style>
     
     <script>
+        // Global variables
         let map;
-        let markers = [];
         let locations = [];
-        let userMarker = null;
+        let markers = [];
+        let routeLine = null;
+        let currentMarker = null;
+        let userLocation = null;
         
         // Initialize map
         function initMap() {
             // Center map on Covilhã
-            map = L.map('map').setView([40.2795, -7.5060], 13);
+            map = L.map('map').setView([40.2795, -7.5060], 14);
             
             // Add tile layer
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -304,58 +258,99 @@
                 maxZoom: 19
             }).addTo(map);
             
-            // Load initial data
+            // Load data
             loadLocations();
-            loadCategories();
         }
         
         // Load locations from API
-        async function loadLocations(lat = null, lng = null, radius = 5, category = '', search = '') {
+        async function loadLocations() {
             try {
-                let url = '/api/locations?limit=100';
+                const response = await fetch('/api/locations?limit=100');
+                const result = await response.json();
+                locations = result.data || [];
                 
-                if (lat && lng) {
-                    url += `&lat=${lat}&lng=${lng}&radius=${radius}`;
-                }
-                
-                if (category) {
-                    url += `&category=${category}`;
-                }
-                
-                if (search) {
-                    url += `&search=${search}`;
-                }
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                locations = data.data || [];
+                populateLocationSelects();
+                populateQuickLocations();
                 updateMap();
-                updateLocationList();
-                
-                document.getElementById('locationCount').textContent = locations.length;
             } catch (error) {
                 console.error('Error loading locations:', error);
                 showAlert('Erro ao carregar locais', 'danger');
             }
         }
         
-        // Load categories
-        async function loadCategories() {
-            try {
-                const response = await fetch('/api/locations/categories');
-                const categories = await response.json();
-                
-                const categoryFilter = document.getElementById('categoryFilter');
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    categoryFilter.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading categories:', error);
+        // Populate location select dropdowns
+        function populateLocationSelects() {
+            const fromSelect = document.getElementById('fromLocation');
+            const toSelect = document.getElementById('toLocation');
+            
+            // Clear existing options but preserve current location option
+            const currentLocationOption = fromSelect.querySelector('option[value="current-location"]');
+            
+            fromSelect.innerHTML = '<option value="">Escolher local de partida...</option>';
+            toSelect.innerHTML = '<option value="">Escolher local de destino...</option>';
+            
+            // Add current location option back if it existed
+            if (currentLocationOption) {
+                fromSelect.appendChild(currentLocationOption);
+            } else {
+                // Add current location option if not present
+                const option = document.createElement('option');
+                option.value = 'current-location';
+                option.textContent = '?? Minha Localização Atual';
+                fromSelect.appendChild(option);
             }
+            
+            // Add locations to both selects
+            locations.forEach(location => {
+                const option1 = document.createElement('option');
+                option1.value = location.id;
+                option1.textContent = location.name;
+                fromSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = location.id;
+                option2.textContent = location.name;
+                toSelect.appendChild(option2);
+            });
+        }
+        
+        // Populate quick locations list
+        function populateQuickLocations() {
+            const quickLocations = document.getElementById('quickLocations');
+            quickLocations.innerHTML = '';
+            
+            // Group locations by category
+            const categories = {};
+            locations.forEach(location => {
+                if (!categories[location.category]) {
+                    categories[location.category] = [];
+                }
+                categories[location.category].push(location);
+            });
+            
+            // Create quick location buttons
+            Object.keys(categories).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'mb-3';
+                categoryDiv.innerHTML = `<h6 class="text-muted small">${category}</h6>`;
+                
+                categories[category].forEach(location => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-sm btn-outline-primary me-1 mb-1';
+                    btn.textContent = location.name;
+                    btn.onclick = () => selectQuickLocation(location.id);
+                    categoryDiv.appendChild(btn);
+                });
+                
+                quickLocations.appendChild(categoryDiv);
+            });
+        }
+        
+        // Select quick location
+        function selectQuickLocation(locationId) {
+            document.getElementById('toLocation').value = locationId;
+            updateButtonStates();
+            showLocationOnMap(locationId);
         }
         
         // Update map with markers
@@ -388,39 +383,38 @@
         
         // Get custom icon based on category
         function getCustomIcon(category) {
-            const iconClass = getMarkerClass(category);
+            const colors = {
+                'Educação': '#007bff',
+                'Saúde': '#28a745',
+                'Desporto': '#17a2b8',
+                'Cultura': '#ffc107',
+                'Alojamento': '#6c757d'
+            };
+            
+            const color = colors[category] || '#dc3545';
+            
             return L.divIcon({
-                className: `custom-marker ${iconClass}`,
+                className: 'custom-marker',
+                html: `<div style="background: ${color}; border: 2px solid white; border-radius: 50%; width: 12px; height: 12px;"></div>`,
                 iconSize: [12, 12],
                 iconAnchor: [6, 6]
             });
         }
         
-        // Get marker class based on category
-        function getMarkerClass(category) {
-            const categoryLower = category.toLowerCase();
-            if (categoryLower.includes('emerg') || categoryLower.includes('urg')) return 'marker-emergency';
-            if (categoryLower.includes('educa') || categoryLower.includes('escol') || categoryLower.includes('univers')) return 'marker-education';
-            if (categoryLower.includes('saúde') || categoryLower.includes('hospital') || categoryLower.includes('farm')) return 'marker-health';
-            if (categoryLower.includes('compra') || categoryLower.includes('supermer') || categoryLower.includes('shop')) return 'marker-shopping';
-            if (categoryLower.includes('transport') || categoryLower.includes('bus') || categoryLower.includes('estação')) return 'marker-transport';
-            if (categoryLower.includes('restaurant') || categoryLower.includes('comida') || categoryLower.includes('caf')) return 'marker-food';
-            if (categoryLower.includes('alojam') || categoryLower.includes('resid') || categoryLower.includes('quart')) return 'marker-accommodation';
-            return 'marker-other';
-        }
-        
         // Create popup content
         function createPopupContent(location) {
             return `
-                <div class="popup-content" style="max-width: 250px;">
+                <div style="min-width: 200px;">
                     <h6 class="mb-2">${location.name}</h6>
-                    <p class="mb-2 small text-muted">${location.description}</p>
+                    <p class="mb-2 small text-muted">${location.description || ''}</p>
                     <p class="mb-1 small"><i class="bi bi-geo-alt me-1"></i> ${location.address}</p>
-                    ${location.phone ? `<p class="mb-1 small"><i class="bi bi-telephone me-1"></i> ${location.phone}</p>` : ''}
-                    ${location.openingHours ? `<p class="mb-2 small"><i class="bi bi-clock me-1"></i> ${location.openingHours}</p>` : ''}
-                    <div class="d-flex gap-2">
-                        ${location.website ? `<a href="${location.website}" target="_blank" class="btn btn-sm btn-outline-primary">Website</a>` : ''}
-                        <button class="btn btn-sm btn-primary" onclick="getDirections(${location.latitude}, ${location.longitude})">
+                    ${location.openingHours ? `<p class="mb-1 small"><i class="bi bi-clock me-1"></i> ${location.openingHours}</p>` : ''}
+                    ${location.website ? `<p class="mb-2 small"><i class="bi bi-globe me-1"></i> <a href="${location.website}" target="_blank">Website</a></p>` : ''}
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-primary" onclick="selectAsDestination('${location.id}')">
+                            <i class="bi bi-geo-alt me-1"></i> Destino
+                        </button>
+                        <button class="btn btn-sm btn-success" onclick="getDirectionsTo('${location.id}')">
                             <i class="bi bi-directions me-1"></i> Direções
                         </button>
                     </div>
@@ -428,171 +422,291 @@
             `;
         }
         
-        // Update location list
-        function updateLocationList() {
-            const listContent = document.getElementById('locationListContent');
-            listContent.innerHTML = '';
-            
-            locations.forEach(location => {
-                const card = createLocationCard(location);
-                listContent.appendChild(card);
-            });
+        // Select as destination
+        function selectAsDestination(locationId) {
+            document.getElementById('toLocation').value = locationId;
+            updateButtonStates();
+            showLocationOnMap(locationId);
         }
         
-        // Create location card
-        function createLocationCard(location) {
-            const col = document.createElement('div');
-            col.className = 'col-md-6 col-lg-4';
+        // Get directions to location
+        function getDirectionsTo(locationId) {
+            const location = locations.find(loc => loc.id === locationId);
+            if (location) {
+                const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
+                window.open(url, '_blank');
+            }
+        }
+        
+        // Show location on map
+        function showLocationOnMap(locationId) {
+            const location = locations.find(loc => loc.id === locationId);
+            if (location && location.latitude && location.longitude) {
+                // Clear current marker
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                }
+                
+                // Add highlight marker
+                currentMarker = L.marker([location.latitude, location.longitude], {
+                    icon: L.divIcon({
+                        className: 'highlight-marker',
+                        html: '<div style="background: #ff0000; border: 3px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 0 10px rgba(255,0,0,0.5);"></div>',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+                    })
+                }).addTo(map);
+                
+                // Center map on location
+                map.setView([location.latitude, location.longitude], 16);
+                
+                // Show location info
+                showLocationInfo(location);
+            }
+        }
+        
+        // Show location information
+        function showLocationInfo(location) {
+            const infoDiv = document.getElementById('locationInfo');
+            const detailsDiv = document.getElementById('locationDetails');
             
-            col.innerHTML = `
-                <div class="card location-card h-100" onclick="focusOnLocation(${location.latitude}, ${location.longitude})">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h6 class="card-title mb-0">${location.name}</h6>
-                            <span class="badge bg-primary">${location.category}</span>
-                        </div>
-                        <p class="card-text small text-muted">${location.description}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                <i class="bi bi-geo-alt me-1"></i> ${location.address}
-                            </small>
-                            ${location.distance ? `<small class="text-primary">${location.distance.toFixed(1)} km</small>` : ''}
-                        </div>
-                    </div>
-                </div>
+            detailsDiv.innerHTML = `
+                <p class="mb-1"><strong>${location.name}</strong></p>
+                <p class="mb-1 small">${location.address}</p>
+                ${location.openingHours ? `<p class="mb-1 small"><i class="bi bi-clock me-1"></i> ${location.openingHours}</p>` : ''}
+                ${location.description ? `<p class="mb-1 small">${location.description}</p>` : ''}
             `;
             
-            return col;
+            infoDiv.classList.remove('d-none');
         }
         
-        // Focus on specific location
-        function focusOnLocation(lat, lng) {
-            map.setView([lat, lng], 16);
+        // Show route on map
+        function showRoute() {
+            const fromId = document.getElementById('fromLocation').value;
+            const toId = document.getElementById('toLocation').value;
             
-            // Find and open the marker popup
-            markers.forEach(marker => {
-                const pos = marker.getLatLng();
-                if (Math.abs(pos.lat - lat) < 0.0001 && Math.abs(pos.lng - lng) < 0.0001) {
-                    marker.openPopup();
+            if (!fromId || !toId) return;
+            
+            let fromLocation, fromCoords;
+            
+            // Handle current location
+            if (fromId === 'current-location') {
+                if (!userLocation) {
+                    showAlert('Por favor, obtenha sua localização atual primeiro', 'warning');
+                    return;
                 }
-            });
+                fromCoords = [userLocation.lat, userLocation.lng];
+                fromLocation = { name: 'Minha Localização Atual', latitude: userLocation.lat, longitude: userLocation.lng };
+            } else {
+                fromLocation = locations.find(loc => loc.id === fromId);
+                if (!fromLocation) return;
+                fromCoords = [fromLocation.latitude, fromLocation.longitude];
+            }
+            
+            const toLocation = locations.find(loc => loc.id === toId);
+            if (!toLocation) return;
+            
+            // Clear existing route
+            if (routeLine) {
+                map.removeLayer(routeLine);
+            }
+            
+            // Create route line
+            const routeCoordinates = [
+                fromCoords,
+                [toLocation.latitude, toLocation.longitude]
+            ];
+            
+            routeLine = L.polyline(routeCoordinates, {
+                color: '#007bff',
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }).addTo(map);
+            
+            // Fit map to show route
+            const bounds = L.latLngBounds(routeCoordinates);
+            map.fitBounds(bounds.pad(0.1));
+            
+            // Show destination info
+            showLocationInfo(toLocation);
         }
         
-        // Get directions
-        function getDirections(lat, lng) {
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        // Get Google Maps directions
+        function getDirections() {
+            const fromId = document.getElementById('fromLocation').value;
+            const toId = document.getElementById('toLocation').value;
+            
+            if (!fromId || !toId) {
+                showAlert('Por favor, selecione ambos os locais', 'warning');
+                return;
+            }
+            
+            let fromLocation, toLocation;
+            
+            // Handle current location
+            if (fromId === 'current-location') {
+                if (!userLocation) {
+                    showAlert('Por favor, obtenha sua localização atual primeiro', 'warning');
+                    return;
+                }
+                fromLocation = { latitude: userLocation.lat, longitude: userLocation.lng };
+            } else {
+                fromLocation = locations.find(loc => loc.id === fromId);
+                if (!fromLocation) {
+                    showAlert('Local de partida não encontrado', 'danger');
+                    return;
+                }
+            }
+            
+            toLocation = locations.find(loc => loc.id === toId);
+            if (!toLocation) {
+                showAlert('Local de destino não encontrado', 'danger');
+                return;
+            }
+            
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${fromLocation.latitude},${fromLocation.longitude}&destination=${toLocation.latitude},${toLocation.longitude}`;
             window.open(url, '_blank');
         }
         
-        // Get user location
-        function getUserLocation() {
+        // Update button states
+        function updateButtonStates() {
+            const fromValue = document.getElementById('fromLocation').value;
+            const toValue = document.getElementById('toLocation').value;
+            const showRouteBtn = document.getElementById('showRouteBtn');
+            const getDirectionsBtn = document.getElementById('getDirectionsBtn');
+            
+            const hasBoth = fromValue && toValue;
+            showRouteBtn.disabled = !hasBoth;
+            getDirectionsBtn.disabled = !hasBoth;
+        }
+        
+        // Get current location for departure
+        function getCurrentLocation() {
             if (navigator.geolocation) {
+                const btn = document.getElementById('getCurrentLocationBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Obtendo...';
+                
                 navigator.geolocation.getCurrentPosition(
-                    position => {
+                    (position) => {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         
-                        // Add user marker
-                        if (userMarker) {
-                            map.removeLayer(userMarker);
+                        userLocation = { lat, lng };
+                        
+                        // Update dropdown to show current location is available
+                        const fromSelect = document.getElementById('fromLocation');
+                        const currentOption = fromSelect.querySelector('option[value="current-location"]');
+                        currentOption.textContent = `📍 Minha Localização (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                        
+                        // Auto-select current location
+                        fromSelect.value = 'current-location';
+                        
+                        // Add user marker to map
+                        if (currentMarker) {
+                            map.removeLayer(currentMarker);
                         }
                         
-                        userMarker = L.marker([lat, lng], {
+                        currentMarker = L.marker([lat, lng], {
                             icon: L.divIcon({
-                                className: 'custom-marker',
+                                className: 'user-marker',
+                                html: '<div style="background: #28a745; border: 3px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 0 10px rgba(40,167,69,0.5);"></div>',
                                 iconSize: [16, 16],
-                                iconAnchor: [8, 8],
-                                html: '<div style="background: #007bff; border: 3px solid white; border-radius: 50%; width: 16px; height: 16px;"></div>'
+                                iconAnchor: [8, 8]
                             })
                         }).addTo(map);
                         
                         map.setView([lat, lng], 15);
+                        updateButtonStates();
                         
-                        // Load nearby locations
-                        const radius = document.getElementById('radiusFilter').value;
-                        loadLocations(lat, lng, radius);
+                        showAlert('Localização atual obtida com sucesso!', 'success');
+                        
+                        // Reset button
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-crosshair"></i>';
                     },
-                    error => {
-                        console.error('Error getting location:', error);
-                        showAlert('Não foi possível obter sua localização', 'warning');
+                    (error) => {
+                        showAlert('Não foi possível obter sua localização. Verifique as permissões do navegador.', 'warning');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-crosshair"></i>';
                     }
                 );
             } else {
-                showAlert('Seu navegador não suporta geolocalização', 'warning');
+                showAlert('Geolocalização não suportada pelo navegador', 'warning');
             }
         }
         
-        // Show alert
+        // Get user location (legacy function)
+        function getUserLocation() {
+            getCurrentLocation();
+        }
+        
+        // Reset map
+        function resetMap() {
+            // Clear markers and routes
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            
+            if (routeLine) {
+                map.removeLayer(routeLine);
+                routeLine = null;
+            }
+            
+            // Hide location info
+            document.getElementById('locationInfo').classList.add('d-none');
+            
+            // Reset to show all locations
+            updateMap();
+        }
+        
+        // Show alert (helper function)
         function showAlert(message, type) {
+            // Create alert element
             const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show m-3`;
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.zIndex = '9999';
             alertDiv.innerHTML = `
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
-            document.querySelector('main').insertBefore(alertDiv, document.querySelector('.map-controls'));
             
+            document.body.appendChild(alertDiv);
+            
+            // Auto remove after 3 seconds
             setTimeout(() => {
-                alertDiv.remove();
-            }, 5000);
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 3000);
         }
         
-        // Event listeners
+        // Initialize everything
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             
-            // Search functionality
-            document.getElementById('searchBtn').addEventListener('click', function() {
-                const search = document.getElementById('searchInput').value;
-                const category = document.getElementById('categoryFilter').value;
-                const radius = document.getElementById('radiusFilter').value;
-                loadLocations(null, null, radius, category, search);
-            });
-            
-            document.getElementById('searchInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    document.getElementById('searchBtn').click();
+            // Event listeners
+            document.getElementById('fromLocation').addEventListener('change', function() {
+                updateButtonStates();
+                if (this.value && this.value !== 'current-location') {
+                    showLocationOnMap(this.value);
                 }
             });
             
-            // Category filter
-            document.getElementById('categoryFilter').addEventListener('change', function() {
-                const category = this.value;
-                const radius = document.getElementById('radiusFilter').value;
-                loadLocations(null, null, radius, category);
-            });
-            
-            // Radius filter
-            document.getElementById('radiusFilter').addEventListener('change', function() {
-                const radius = this.value;
-                const category = document.getElementById('categoryFilter').value;
-                loadLocations(null, null, radius, category);
-            });
-            
-            // Location button
-            document.getElementById('locateBtn').addEventListener('click', getUserLocation);
-            
-            // Reset button
-            document.getElementById('resetBtn').addEventListener('click', function() {
-                document.getElementById('searchInput').value = '';
-                document.getElementById('categoryFilter').value = '';
-                document.getElementById('radiusFilter').value = '5';
-                loadLocations();
-            });
-            
-            // Toggle list
-            document.getElementById('toggleListBtn').addEventListener('click', function() {
-                const content = document.getElementById('locationListContent');
-                const icon = this.querySelector('i');
-                
-                if (content.style.display === 'none') {
-                    content.style.display = 'flex';
-                    icon.className = 'bi bi-chevron-up';
-                } else {
-                    content.style.display = 'none';
-                    icon.className = 'bi bi-chevron-down';
+            document.getElementById('toLocation').addEventListener('change', function() {
+                updateButtonStates();
+                if (this.value) {
+                    showLocationOnMap(this.value);
                 }
             });
+            
+            document.getElementById('getCurrentLocationBtn').addEventListener('click', getCurrentLocation);
+            document.getElementById('showRouteBtn').addEventListener('click', showRoute);
+            document.getElementById('getDirectionsBtn').addEventListener('click', getDirections);
+            document.getElementById('resetMapBtn').addEventListener('click', resetMap);
+            document.getElementById('locateMeBtn').addEventListener('click', getUserLocation);
         });
     </script>
 </body>

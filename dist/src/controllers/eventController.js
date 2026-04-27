@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPastEvents = exports.getUpcomingEvents = exports.getUserEvents = exports.getEventAttendees = exports.unregisterFromEvent = exports.registerForEvent = exports.getCategories = exports.deleteEvent = exports.updateEvent = exports.createEvent = exports.getEventById = exports.getAllEvents = void 0;
-const eventService_1 = __importDefault(require("@/services/eventService"));
+const eventService_1 = __importDefault(require("../services/eventService"));
 const getAllEvents = async (req, res, next) => {
     try {
         const { category, startDate, endDate, status, page = '1', limit = '50' } = req.query;

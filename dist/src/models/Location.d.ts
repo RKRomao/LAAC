@@ -65,7 +65,7 @@ export default class Location extends BaseModel {
                 type: string[];
                 maxLength: number;
             };
-            isActive: {
+            is_active: {
                 type: string;
                 default: boolean;
             };

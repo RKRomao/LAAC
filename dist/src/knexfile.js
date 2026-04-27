@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const dbType = process.env.DB_TYPE || 'postgresql';
+const dbType = process.env.DB_TYPE || 'sqlite3';
 const baseConfig = {
     pool: {
         min: 2,
@@ -13,11 +14,19 @@ const baseConfig = {
     },
     migrations: {
         tableName: 'knex_migrations',
-        directory: './database/migrations',
+        directory: '../database/migrations',
     },
     seeds: {
-        directory: './database/seeds',
+        directory: '../database/seeds',
     },
+};
+const sqliteConfig = {
+    client: 'sqlite3',
+    connection: {
+        filename: path_1.default.join(__dirname, '../database/laac_dev.sqlite3'),
+    },
+    useNullAsDefault: true,
+    ...baseConfig,
 };
 const postgresConfig = {
     client: 'postgresql',
@@ -42,7 +51,7 @@ const mysqlConfig = {
     },
     ...baseConfig,
 };
-const selectedConfig = dbType === 'mysql2' ? mysqlConfig : postgresConfig;
+const selectedConfig = dbType === 'mysql2' ? mysqlConfig : dbType === 'sqlite3' ? sqliteConfig : postgresConfig;
 const config = {
     development: selectedConfig,
     staging: {

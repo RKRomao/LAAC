@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculateDistance = exports.searchLocations = exports.findWithinBounds = exports.findNearby = exports.getCategories = exports.deleteLocation = exports.updateLocation = exports.createLocation = exports.getLocationById = exports.getAllLocations = void 0;
-const locationService_1 = __importDefault(require("@/services/locationService"));
+const locationService_1 = __importDefault(require("../services/locationService"));
 const getAllLocations = async (req, res, next) => {
     try {
         const { category, search, lat, lng, radius, minLat, minLng, maxLat, maxLng, page = '1', limit = '50', } = req.query;

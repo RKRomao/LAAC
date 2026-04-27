@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reorderFAQs = exports.getPopularFAQs = exports.searchFAQs = exports.getCategories = exports.deleteFAQ = exports.updateFAQ = exports.createFAQ = exports.getFAQById = exports.getAllFAQs = void 0;
-const faqService_1 = __importDefault(require("@/services/faqService"));
+const faqService_1 = __importDefault(require("../services/faqService"));
 const getAllFAQs = async (req, res, next) => {
     try {
         const { category, search, page = '1', limit = '50' } = req.query;

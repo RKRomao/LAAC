@@ -11,16 +11,16 @@ import { Knex } from 'knex';
 import { Model } from 'objection';
 
 // Import routes
-import authRoutes from '@/routes/auth';
-import userRoutes from '@/routes/users';
-import faqRoutes from '@/routes/faq';
-import eventRoutes from '@/routes/events';
-import supportRoutes from '@/routes/support';
-import locationRoutes from '@/routes/locations';
+import authRoutes from './routes/auth';
+import userRoutes from './routes/users';
+import faqRoutes from './routes/faq';
+import eventRoutes from './routes/events';
+import supportRoutes from './routes/support';
+import locationRoutes from './routes/locations';
 
 // Import middleware
-import { errorHandler } from '@/middleware/errorHandler';
-import { notFound } from '@/middleware/notFound';
+import { errorHandler } from './middleware/errorHandler';
+import { notFound } from './middleware/notFound';
 
 // Import database config
 import knexConfig from './knexfile';
@@ -40,10 +40,13 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-hashes'", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:", "https://tile.openstreetmap.org"],
       fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      connectSrc: ["'self'", "data:", "https://tile.openstreetmap.org", "https://www.openstreetmap.org", "https://cdn.jsdelivr.net", "https://unpkg.com"],
+      frameSrc: ["'self'", "https://www.openstreetmap.org"],
     },
   },
 }));
@@ -79,6 +82,11 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 }));
+
+// Passport configuration
+import passport from './config/passport';
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Static files
 app.use(express.static(path.join(__dirname, '../public')));
@@ -133,12 +141,17 @@ app.get('/login', (req, res) => {
   });
 });
 
+// Redirect /register to /login for backward compatibility
 app.get('/register', (req, res) => {
+  res.redirect('/login');
+});
+
+app.get('/forgot-password', (req, res) => {
   if ((req as any).session?.user) {
     return res.redirect('/');
   }
-  res.render('pages/register', {
-    title: 'Registar - LAAC',
+  res.render('pages/forgot-password', {
+    title: 'Recuperar Password - LAAC',
   });
 });
 
@@ -147,6 +160,11 @@ app.get('/locations', (req, res) => {
     title: 'Mapa de Locais - LAAC',
     user: (req as any).session?.user,
   });
+});
+
+// Favicon route
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/images/favicon.png'));
 });
 
 // Health check endpoint
@@ -164,7 +182,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, '127.0.0.1', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`LAAC Platform is running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`View server at http://localhost:${PORT}`);

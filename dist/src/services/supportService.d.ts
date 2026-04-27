@@ -1,4 +1,4 @@
-import SupportTicket from '@/models/SupportTicket';
+import SupportTicket from '../models/SupportTicket';
 export interface CreateTicketData {
     title: string;
     description: string;

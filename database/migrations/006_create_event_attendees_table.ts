@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable('event_attendees', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+    table.uuid('id').primary().defaultTo(knex.raw('(UUID())'));
     table.uuid('eventId').references('id').inTable('events').onDelete('CASCADE');
     table.uuid('userId').references('id').inTable('users').onDelete('CASCADE');
     table.enum('status', ['registered', 'attended', 'cancelled']).defaultTo('registered');

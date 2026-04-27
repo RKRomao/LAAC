@@ -1,6 +1,6 @@
-import Event from '@/models/Event';
-import EventAttendee from '@/models/EventAttendee';
-import { CustomError } from '@/middleware/errorHandler';
+import Event from '../models/Event';
+import EventAttendee from '../models/EventAttendee';
+import { CustomError } from '../middleware/errorHandler';
 
 export interface CreateEventData {
   title: string;

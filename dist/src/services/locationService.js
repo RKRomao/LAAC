@@ -3,12 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const Location_1 = __importDefault(require("@/models/Location"));
+const Location_1 = __importDefault(require("../models/Location"));
 class LocationService {
     async getAllLocations(query = {}) {
         const { category, search, lat, lng, radius = 5, minLat, minLng, maxLat, maxLng, page = 1, limit = 50, } = query;
         let locationQuery = Location_1.default.query()
-            .withGraphFetched('[creator(updater)]')
+            .withGraphFetched('[creator, updater]')
             .modify('active');
         if (category) {
             locationQuery = locationQuery.modify('byCategory', category);
@@ -60,7 +60,7 @@ class LocationService {
     async getLocationById(id) {
         const location = await Location_1.default.query()
             .findById(id)
-            .withGraphFetched('[creator(updater)]')
+            .withGraphFetched('[creator, updater]')
             .modify('active');
         if (!location) {
             const error = new Error('Location not found');
@@ -125,7 +125,7 @@ class LocationService {
         });
         return await Location_1.default.query()
             .findById(updatedLocation.id)
-            .withGraphFetched('[creator(updater)]');
+            .withGraphFetched('[creator, updater]');
     }
     async deleteLocation(id) {
         const location = await Location_1.default.query().findById(id);
@@ -180,8 +180,7 @@ class LocationService {
                 .orWhere('address', 'ilike', `%${searchTerm}%`);
         })
             .modify('active')
-            .withGraphFetched('[creator]')
-            .limit(limit);
+            .withGraphFetched('[creator]');
         if (category) {
             locationQuery = locationQuery.modify('byCategory', category);
         }

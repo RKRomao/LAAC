@@ -13,9 +13,9 @@ import {
   getUserEvents,
   getUpcomingEvents,
   getPastEvents,
-} from '@/controllers/eventController';
-import { authenticate, authorize } from '@/middleware/auth';
-import { validate } from '@/middleware/validation';
+} from '../controllers/eventController';
+import { authenticate, authorize } from '../middleware/auth';
+import { validate } from '../middleware/validation';
 
 const router = Router();
 

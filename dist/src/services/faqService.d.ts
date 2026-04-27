@@ -1,4 +1,4 @@
-import FAQ from '@/models/FAQ';
+import FAQ from '../models/FAQ';
 export interface CreateFAQData {
     question: string;
     answer: string;
