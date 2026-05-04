@@ -50,8 +50,8 @@ class AuthService {
       email,
       password: hashedPassword,
       role,
-      isActive: true,
-      emailVerified: false,
+      is_active: true,
+      email_verified: false,
     });
 
     // Generate token
@@ -105,7 +105,7 @@ class AuthService {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { userId: string };
       
       const user = await User.query().findById(decoded.userId);
-      if (!user || !user.isActive) {
+      if (!user || !user.is_active) {
         const error = new Error('User not found or inactive') as CustomError;
         error.statusCode = 401;
         throw error;

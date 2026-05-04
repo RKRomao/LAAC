@@ -28,9 +28,9 @@ if (process.env.GOOGLE_CLIENT_ID &&
             .patch({
               googleId: profile.id,
               avatar: profile.photos?.[0]?.value || user.avatar,
-              emailVerified: true,
+              email_verified: true,
               lastLoginAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
+              updated_at: new Date().toISOString()
             });
         }
         return done(null, user);
@@ -43,10 +43,10 @@ if (process.env.GOOGLE_CLIENT_ID &&
           googleId: profile.id,
           avatar: profile.photos?.[0]?.value,
           role: 'student', // Default role for OAuth users
-          isActive: true,
-          emailVerified: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          is_active: true,
+          email_verified: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
         
         return done(null, newUser);

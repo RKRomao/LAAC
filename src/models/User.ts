@@ -11,8 +11,8 @@ export default class User extends BaseModel {
   password!: string;
   role!: UserRole;
   avatar?: string;
-  isActive!: boolean;
-  emailVerified!: boolean;
+  is_active!: boolean;
+  email_verified!: boolean;
   googleId?: string;
   microsoftId?: string;
   lastLoginAt?: string;
@@ -33,13 +33,13 @@ export default class User extends BaseModel {
         default: 'student'
       },
       avatar: { type: ['string', 'null'] },
-      isActive: { type: 'boolean', default: true },
-      emailVerified: { type: 'boolean', default: false },
+      is_active: { type: 'boolean', default: true },
+      email_verified: { type: 'boolean', default: false },
       googleId: { type: ['string', 'null'] },
       microsoftId: { type: ['string', 'null'] },
       lastLoginAt: { type: ['string', 'null'] },
-      createdAt: { type: 'string' },
-      updatedAt: { type: 'string' },
+      created_at: { type: 'string' },
+      updated_at: { type: 'string' },
     },
   };
 
