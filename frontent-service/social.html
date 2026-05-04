@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Rede Social</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <link rel="stylesheet" href="social.css">
+</head>
+<body>
+
+    <nav class="navbar glass">
+        <div class="nav-content">
+            <div class="nav-logo" onclick="window.location.href='index.html'">
+                <i class="fas fa-rocket"></i>
+                <span>LAAC <span>UBI</span></span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="map.html">Mapa</a>
+                <a href="social.html" class="active">Social</a>
+                <a href="profile.html">Perfil</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="social-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar-left">
+            <div class="profile-mini glass" style="padding: 1.5rem; text-align: center;">
+                <img id="mini-avatar" src="https://ui-avatars.com/api/?name=User" class="post-avatar" style="width: 80px; height: 80px; margin-bottom: 1rem;">
+                <h3 id="mini-name">Nome do Utilizador</h3>
+                <p id="mini-course" class="text-muted" style="font-size: 0.8rem; margin-bottom: 1rem;">Curso Académico</p>
+                <button class="btn-post" style="width: 100%;" onclick="window.location.href='profile.html'">Ver Perfil</button>
+            </div>
+        </div>
+
+        <!-- Center Feed -->
+        <main class="feed-main">
+            <div class="create-post glass">
+                <div class="post-input-wrapper">
+                    <img id="input-avatar" src="https://ui-avatars.com/api/?name=User" class="post-avatar">
+                    <textarea id="post-content" class="post-textarea" placeholder="O que estás a pensar? Partilha com a UBI..."></textarea>
+                </div>
+                <!-- File Inputs -->
+                <div id="media-preview" style="margin-bottom: 1rem; display: none;">
+                    <img id="img-preview" style="max-height: 200px; border-radius: 12px; margin-bottom: 0.5rem;">
+                </div>
+                <div class="post-actions">
+                    <div class="action-btns">
+                        <label class="action-btn" title="Carregar Imagem">
+                            <i class="fas fa-image"></i>
+                            <input type="file" id="post-image" accept="image/*" style="display: none;" onchange="previewMedia('image')">
+                        </label>
+                        <label class="action-btn" title="Carregar Vídeo">
+                            <i class="fas fa-video"></i>
+                            <input type="file" id="post-video" accept="video/*" style="display: none;" onchange="previewMedia('video')">
+                        </label>
+                        <select id="post-org" class="glass" style="background: transparent; color: white; border: 1px solid var(--glass-border); border-radius: 8px; font-size: 0.8rem; padding: 0.2rem 0.5rem;">
+                            <option value="">Publicar como Geral</option>
+                            <!-- Orgs will be loaded here -->
+                        </select>
+                    </div>
+                    <button class="btn-post" onclick="submitPost()">Publicar</button>
+                </div>
+            </div>
+
+            <div id="social-feed">
+                <!-- Feed items will be loaded here -->
+                <div class="text-muted" style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 1rem;">A carregar o feed...</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <div class="sidebar-right">
+            <div class="trending-orgs glass" style="padding: 1.5rem;">
+                <h3>Sugestões de Grupos</h3>
+                <div id="trending-list" style="margin-top: 1rem;">
+                    <!-- Trending items -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let followingIds = [];
+
+        async function initSocial() {
+            const email = localStorage.getItem('laac_user_email');
+            if (!email) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Load Profile Data for UI
+            try {
+                const response = await fetch(`/api/profiles/${email}`);
+                currentUser = await response.json();
+                
+                // Save user ID to localStorage for social interactions
+                localStorage.setItem('laac_user_id', currentUser.id);
+
+                // Fetch Following List
+                const followResp = await fetch(`/api/profiles/${currentUser.id}/following`);
+                const following = await followResp.json();
+                followingIds = following.map(f => f.id);
+
+                document.getElementById('mini-name').innerText = currentUser.display_name;
+                document.getElementById('mini-course').innerText = currentUser.course;
+                document.getElementById('mini-avatar').src = currentUser.avatar_url;
+                document.getElementById('input-avatar').src = currentUser.avatar_url;
+
+                // Load Orgs for Select
+                const orgSelect = document.getElementById('post-org');
+                currentUser.organizations.forEach(org => {
+                    const opt = document.createElement('option');
+                    opt.value = org.id;
+                    opt.textContent = `Publicar como ${org.name}`;
+                    orgSelect.appendChild(opt);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar perfil:', error);
+            }
+
+            loadFeed();
+        }
+
+        async function loadFeed() {
+            try {
+                const response = await fetch('/api/feed');
+                const posts = await response.json();
+                
+                const feedContainer = document.getElementById('social-feed');
+                feedContainer.innerHTML = '';
+
+                if (posts.length === 0) {
+                    feedContainer.innerHTML = '<div class="glass feed-item text-center"><p>Ainda não há posts. Sê o primeiro!</p></div>';
+                    return;
+                }
+
+                posts.forEach(post => {
+                    const postDate = new Date(post.created_at).toLocaleString('pt-PT');
+                    const isFollowing = followingIds.includes(post.author_id);
+                    const isSelf = currentUser && currentUser.id === post.author_id;
+
+                    let mediaHtml = '';
+                    if (post.video_url) {
+                        mediaHtml = `
+                            <video controls class="feed-image">
+                                <source src="${post.video_url}" type="video/mp4">
+                                O teu navegador não suporta vídeos.
+                            </video>`;
+                    } else if (post.image_url) {
+                        mediaHtml = `<img src="${post.image_url}" class="feed-image">`;
+                    }
+
+                    const div = document.createElement('div');
+                    div.className = 'feed-item glass';
+                    div.style.marginBottom = '2rem';
+                    div.innerHTML = `
+                        <div class="feed-header">
+                            <img src="${post.avatar || 'https://ui-avatars.com/api/?name=' + post.author}" class="post-avatar">
+                            <div class="feed-author-info">
+                                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                    <h4>${post.author} ${post.organization ? `<span class="org-tag">${post.organization}</span>` : ''}</h4>
+                                    ${!isSelf ? `
+                                        <button onclick="toggleFollow(${post.author_id}, this)" class="btn-follow ${isFollowing ? 'following' : ''}">
+                                            ${isFollowing ? 'Seguindo' : 'Seguir'}
+                                        </button>
+                                    ` : ''}
+                                </div>
+                                <span>${postDate}</span>
+                            </div>
+                        </div>
+                        <div class="feed-content">
+                            <p>${post.content}</p>
+                            ${mediaHtml}
+                        </div>
+                        <div class="feed-footer">
+                            <div class="footer-action" id="like-btn-${post.id}" onclick="likePost(${post.id})">
+                                <i class="far fa-heart"></i> <span id="like-count-${post.id}">${post.likes || 0}</span> Gostar
+                            </div>
+                            <div class="footer-action" onclick="toggleComments(${post.id})">
+                                <i class="far fa-comment"></i> ${post.comments || 0} Comentários
+                            </div>
+                            <div class="footer-action"><i class="fas fa-share"></i> Partilhar</div>
+                        </div>
+                        <div id="comments-section-${post.id}" class="comments-section" style="display: none;">
+                            <div class="comments-list" id="comments-list-${post.id}">
+                                <!-- Comments will be loaded here -->
+                            </div>
+                            <div class="comment-input-area">
+                                <input type="text" id="comment-input-${post.id}" placeholder="Escreve um comentário..." 
+                                       onkeypress="if(event.key === 'Enter') submitComment(${post.id})">
+                                <button onclick="submitComment(${post.id})" class="btn-post" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Enviar</button>
+                            </div>
+                        </div>
+                    `;
+                    feedContainer.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar feed:', error);
+            }
+        }
+
+        async function toggleFollow(targetId, btn) {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(`/api/profiles/${currentUser.id}/follow/${targetId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    if (data.action === 'followed') {
+                        btn.classList.add('following');
+                        btn.innerText = 'Seguindo';
+                        if (!followingIds.includes(targetId)) followingIds.push(targetId);
+                    } else {
+                        btn.classList.remove('following');
+                        btn.innerText = 'Seguir';
+                        followingIds = followingIds.filter(id => id !== targetId);
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao seguir utilizador:', error);
+            }
+        }
+
+        async function likePost(postId) {
+            const userId = localStorage.getItem('laac_user_id');
+            if (!userId || userId === 'undefined') {
+                alert('Sessão expirada. Por favor faz login novamente.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/posts/${postId}/like?user_id=${userId}`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const countSpan = document.getElementById(`like-count-${postId}`);
+                    const currentCount = parseInt(countSpan.innerText);
+                    countSpan.innerText = data.action === 'liked' ? currentCount + 1 : currentCount - 1;
+                    
+                    const btn = document.getElementById(`like-btn-${postId}`);
+                    if (data.action === 'liked') btn.classList.add('liked');
+                    else btn.classList.remove('liked');
+                }
+            } catch (error) {
+                console.error('Erro ao dar like:', error);
+            }
+        }
+
+        async function toggleComments(postId) {
+            const section = document.getElementById(`comments-section-${postId}`);
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                loadComments(postId);
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        async function loadComments(postId) {
+            const list = document.getElementById(`comments-list-${postId}`);
+            list.innerHTML = '<p class="text-muted" style="font-size: 0.8rem;">Carregando comentários...</p>';
+            
+            try {
+                const response = await fetch(`/api/posts/${postId}/comments`);
+                const comments = await response.json();
+                
+                list.innerHTML = '';
+                if (comments.length === 0) {
+                    list.innerHTML = '<p class="text-muted" style="font-size: 0.8rem;">Sem comentários ainda.</p>';
+                    return;
+                }
+
+                comments.forEach(c => {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment-item';
+                    commentDiv.innerHTML = `
+                        <img src="${c.avatar || 'https://ui-avatars.com/api/?name=' + c.author}" class="comment-avatar">
+                        <div class="comment-body">
+                            <h5>${c.author}</h5>
+                            <p>${c.content}</p>
+                        </div>
+                    `;
+                    list.appendChild(commentDiv);
+                });
+            } catch (error) {
+                list.innerHTML = '<p class="text-muted">Erro ao carregar comentários.</p>';
+            }
+        }
+
+        async function submitComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const content = input.value.trim();
+            const userId = localStorage.getItem('laac_user_id');
+
+            if (!content) return;
+            if (!userId || userId === 'undefined') {
+                alert('Tens de estar ligado para comentar!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/posts/${postId}/comment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: parseInt(userId), content: content })
+                });
+
+                if (response.ok) {
+                    input.value = '';
+                    loadComments(postId);
+                }
+            } catch (error) {
+                alert('Erro ao enviar comentário.');
+            }
+        }
+
+        function previewMedia(type) {
+            const preview = document.getElementById('media-preview');
+            const imgPreview = document.getElementById('img-preview');
+            const file = document.getElementById(`post-${type}`).files[0];
+            
+            if (file && type === 'image') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imgPreview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else if (file && type === 'video') {
+                preview.style.display = 'block';
+                imgPreview.src = 'https://img.icons8.com/color/96/video.png'; // Placeholder for video
+            }
+        }
+
+        async function submitPost() {
+            const content = document.getElementById('post-content').value;
+            const imageFile = document.getElementById('post-image').files[0];
+            const videoFile = document.getElementById('post-video').files[0];
+            const orgId = document.getElementById('post-org').value;
+            const userId = localStorage.getItem('laac_user_id');
+
+            if (!content.trim() && !imageFile && !videoFile) return;
+
+            const formData = new FormData();
+            formData.append('user_id', userId);
+            formData.append('content', content);
+            if (orgId) formData.append('organization_id', orgId);
+            if (imageFile) formData.append('image', imageFile);
+            if (videoFile) formData.append('video', videoFile);
+
+            try {
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    document.getElementById('post-content').value = '';
+                    document.getElementById('post-image').value = '';
+                    document.getElementById('post-video').value = '';
+                    document.getElementById('media-preview').style.display = 'none';
+                    loadFeed();
+                }
+            } catch (error) {
+                alert('Erro ao publicar post.');
+            }
+        }
+
+        window.onload = initSocial;
+    </script>
+</body>
+</html>

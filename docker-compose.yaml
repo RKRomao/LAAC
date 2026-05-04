@@ -1,0 +1,258 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: laac-mariadb
+    environment:
+      MARIADB_DATABASE: laac_db
+      MARIADB_USER: laac_user
+      MARIADB_PASSWORD: laac_pass
+      MARIADB_ROOT_PASSWORD: root_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./DB-servevice/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--password=root_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  orq:
+    build: ./orq
+    container_name: laac-orq
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./orq:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+      - MAP_SERVICE_URL=http://map-service:8001
+      - AUTH_SERVICE_URL=http://auth-service:8002
+      - LOGGING_SERVICE_URL=http://logging-service:8000
+      - FAQ_SERVICE_URL=http://faq-service:8004
+      - EMERGENCY_SERVICE_URL=http://emergency-service:8005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8006
+      - CHAT_SERVICE_URL=http://chat-service:8007
+      - CALL_SERVICE_URL=http://emergency-call-service:8008
+      - PROFILE_SERVICE_URL=http://profile-service:8010
+      - POST_SERVICE_URL=http://post-service:8012
+      - FEED_SERVICE_URL=http://feed-service:8013
+      - CALENDAR_SERVICE_URL=http://calendar-service:8011
+      - ACADEMIC_SERVICE_URL=http://academic-service:3001
+    ports:
+      - "8000:8000"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  map-service:
+    build: ./map-service
+    container_name: laac-map-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    volumes:
+      - ./map-service:/app
+    ports:
+      - "8001:8001"
+
+  auth-service:
+    build: ./auth-service
+    container_name: laac-auth-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+    volumes:
+      - ./auth-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+      - LOGGING_SERVICE_URL=http://logging-service:8000
+    ports:
+      - "8002:8002"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  logging-service:
+    build: ./logging-service
+    container_name: laac-logging-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./logging-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+    ports:
+      - "8003:8000"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  faq-service:
+    build: ./FAQ-service
+    container_name: laac-faq-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+    volumes:
+      - ./FAQ-service:/app
+    ports:
+      - "8004:8004"
+
+  emergency-service:
+    build: ./emergency-service
+    container_name: laac-emergency-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8005 --reload
+    volumes:
+      - ./emergency-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+      - LOGGING_SERVICE_URL=http://logging-service:8000
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8006
+    ports:
+      - "8005:8005"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  notification-service:
+    build: ./notification-service
+    container_name: laac-notification-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8006 --reload
+    volumes:
+      - ./notification-service:/app
+    ports:
+      - "8006:8006"
+
+  chat-service:
+    build: ./chat-service
+    container_name: laac-chat-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8007 --reload
+    volumes:
+      - ./chat-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8006
+    ports:
+      - "8007:8007"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  emergency-call-service:
+    build: ./emergencyCall-service
+    container_name: laac-emergency-call-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8008 --reload
+    volumes:
+      - ./emergencyCall-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8006
+    ports:
+      - "8008:8008"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  profile-service:
+    build: ./profile-service
+    container_name: laac-profile-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8010 --reload
+    volumes:
+      - ./profile-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+    ports:
+      - "8010:8010"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  calendar-service:
+    build: ./calendar-service
+    container_name: laac-calendar-service
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+    ports:
+      - "8011:8011"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  academic-service:
+    build: ./academic-service
+    container_name: laac-academic-service
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+    ports:
+      - "8012:3001"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  post-service:
+    build: ./post-service
+    container_name: laac-post-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8012 --reload
+    volumes:
+      - ./post-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+    ports:
+      - "8014:8012"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  feed-service:
+    build: ./feed-service
+    container_name: laac-feed-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8013 --reload
+    volumes:
+      - ./feed-service:/app
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+    ports:
+      - "8015:8013"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontent-service
+    container_name: laac-frontend
+    volumes:
+      - ./frontent-service:/usr/share/nginx/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - orq
+
+volumes:
+  mariadb_data:

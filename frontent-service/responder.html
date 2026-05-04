@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Centro de Comando de Resposta</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        body { overflow: hidden; background: #020617; }
+        
+        .responder-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            height: 100vh;
+            gap: 1px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .incident-list {
+            background: #0f172a;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+        }
+
+        .map-center {
+            position: relative;
+            background: #020617;
+        }
+
+        #incident-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .comm-center {
+            background: #0f172a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .incident-card-sm {
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .incident-card-sm.active {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .incident-card-sm h4 { font-size: 0.95rem; margin-bottom: 0.3rem; }
+        .incident-card-sm p { font-size: 0.8rem; opacity: 0.6; }
+
+        .chat-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .msg-responder {
+            align-self: flex-end;
+            background: var(--primary);
+            padding: 0.8rem 1rem;
+            border-radius: 12px 12px 0 12px;
+            font-size: 0.9rem;
+        }
+
+        .msg-student {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.05);
+            padding: 0.8rem 1rem;
+            border-radius: 12px 12px 12px 0;
+            font-size: 0.9rem;
+        }
+
+        .responder-header {
+            padding: 1.5rem;
+            background: #1e293b;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-pill {
+            background: #22c55e;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .btn-action {
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-action.primary {
+            background: var(--primary);
+            border: none;
+        }
+
+        .btn-action.primary:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="responder-layout">
+        <!-- Esquerda: Lista de Incidentes -->
+        <aside class="incident-list">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.2rem;">Incidentes Ativos</h2>
+                <span class="badge" id="active-count">0</span>
+            </div>
+            <div id="active-incidents-container">
+                <!-- Injected via JS -->
+            </div>
+        </aside>
+
+        <!-- Centro: Mapa e Controlo -->
+        <main class="map-center">
+            <div class="responder-header">
+                <div>
+                    <h1 style="font-size: 1.2rem;">Mapa de Operações</h1>
+                    <p style="font-size: 0.8rem; opacity: 0.6;">Localização em tempo real dos alertas</p>
+                </div>
+                <div class="status-pill">Equipa Online</div>
+            </div>
+            <div id="incident-map"></div>
+        </main>
+
+        <!-- Direita: Comunicações -->
+        <aside class="comm-center">
+            <div class="responder-header">
+                <h2 style="font-size: 1.1rem;">Consola de Contacto</h2>
+            </div>
+            <div class="chat-view">
+                <div id="selected-incident-info" style="margin-bottom: 1.5rem; display: none;">
+                    <h3 id="target-user">---</h3>
+                    <p id="incident-type" class="text-muted" style="font-size: 0.8rem;"></p>
+                </div>
+                <div class="messages" id="chat-messages">
+                    <div style="text-align: center; margin-top: 5rem; opacity: 0.3;">
+                        <i class="fa-solid fa-comments fa-3x"></i>
+                        <p style="margin-top: 1rem;">Seleciona um incidente para<br>estabelecer contacto</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="chat-input" class="auth-input" placeholder="Enviar instrução..." style="padding: 0.8rem;" onkeydown="if(event.key === 'Enter') sendMessage()">
+                    <button class="nav-btn" onclick="sendMessage()" style="padding: 0 1.2rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+                <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                    <button class="btn-action" onclick="quickAction('A caminho!')">A Caminho</button>
+                    <button class="btn-action" onclick="quickAction('Segurança alertada.')">Segurança</button>
+                </div>
+                <button class="btn-action primary" onclick="resolveIncident()" style="width: 100%; margin-top: 0.8rem;">
+                    <i class="fa-solid fa-check-double"></i> Finalizar Resposta
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Security check: Only Response Team or Admins allowed
+        const role = localStorage.getItem('laac_role');
+        const userEmail = localStorage.getItem('laac_user'); // Assume we store this on login
+        
+        if (!role || (!role.includes('Response-team') && role !== 'admin')) {
+            window.location.href = 'login.html';
+        }
+
+        // Marcar como Online ao entrar
+        async function setOnlineStatus(status) {
+            try {
+                // Precisamos do ID do utilizador. Vamos assumir que o login devolve o ID ou procuramos pelo email.
+                // Por agora, vamos usar um endpoint que procure pelo email ou simplificar guardando o ID no localStorage no login.
+                const userId = localStorage.getItem('laac_user_id');
+                if (userId) {
+                    await fetch(`/api/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_online: status })
+                    });
+                    console.log("Status atualizado para:", status ? "Online" : "Offline");
+                }
+            } catch (e) {
+                console.error("Erro ao atualizar status:", e);
+            }
+        }
+
+        setOnlineStatus(true);
+        // Tentar marcar como offline ao sair (nem sempre garantido)
+        window.addEventListener('beforeunload', () => setOnlineStatus(false));
+
+        let map;
+        let markers = {};
+        let activeIncidents = [];
+        let selectedIncidentId = null;
+        let chatPollingInterval = null;
+        
+        // Sound for alerts
+        const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3'); // Phone ring
+        const msgSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'); // Notification
+
+        function initMap() {
+            map = L.map('incident-map').setView([40.285, -7.505], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        async function pollNotifications() {
+            try {
+                const response = await fetch('/api/notifications/Response-team');
+                const notifications = await response.json();
+                
+                if (notifications.length > 0) {
+                    notifications.forEach(handleNotification);
+                }
+            } catch (e) { console.error("Polling error:", e); }
+        }
+
+        function handleNotification(notif) {
+            console.log("New Event:", notif);
+            
+            const data = notif.data || {};
+            
+            if (notif.message.includes("ALERTA CRÍTICO") || notif.message.includes("SOS")) {
+                msgSound.play();
+                refreshIncidentsList(); // Fetch full list when a new one appears
+            } 
+            else if (data.type === "voice_call") {
+                showIncomingCall(data.user, data.call_id);
+            }
+            else if (data.type === "chat_message") {
+                if (selectedIncidentId == data.incident_id) {
+                    loadChatMessages();
+                } else {
+                    msgSound.play();
+                    // Mark card as having unread
+                    console.log("New msg in incident", data.incident_id);
+                }
+            }
+        }
+
+        async function refreshIncidentsList() {
+            try {
+                const response = await fetch('/api/emergency/alerts');
+                activeIncidents = await response.json();
+                renderIncidents();
+                updateMapMarkers();
+            } catch (e) { console.error(e); }
+        }
+
+        function showIncomingCall(user, callId) {
+            alertSound.play();
+            alertSound.loop = true;
+            
+            const modal = document.createElement('div');
+            modal.className = 'glass';
+            modal.style = "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 3rem; text-align: center; z-index: 9999; border: 2px solid #22c55e; width: 400px;";
+            modal.innerHTML = `
+                <div style="font-size: 3rem; color: #22c55e; margin-bottom: 1rem;" class="pulse">
+                    <i class="fa-solid fa-phone-volume"></i>
+                </div>
+                <h2>Chamada de Emergência</h2>
+                <p style="margin: 1rem 0;">${user} está a ligar...</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button class="nav-btn" style="background: #22c55e; color: white; border: none; padding: 1rem 2rem;" onclick="acceptCall('${user}', this)">Atender</button>
+                    <button class="nav-btn" style="background: #ef4444; color: white; border: none; padding: 1rem 2rem;" onclick="this.parentElement.parentElement.remove(); alertSound.pause();">Recusar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function acceptCall(user, btn) {
+            alertSound.pause();
+            btn.parentElement.innerHTML = `<p style="color: #22c55e; font-weight: bold;">EM CHAMADA...</p>
+                <button class="nav-btn" style="margin-top: 1rem; background: #ef4444; color: white; border: none;" onclick="this.parentElement.parentElement.remove()">Terminar</button>`;
+        }
+
+        function renderIncidents() {
+            const container = document.getElementById('active-incidents-container');
+            document.getElementById('active-count').innerText = activeIncidents.length;
+            
+            container.innerHTML = activeIncidents.map(inc => `
+                <div class="incident-card-sm glass ${selectedIncidentId == inc.id ? 'active' : ''}" onclick="selectIncident(${inc.id})">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4>${inc.user_email.split('@')[0]}</h4>
+                        <span style="color: #ef4444; font-size: 0.7rem; font-weight: bold;">${inc.type.toUpperCase()}</span>
+                    </div>
+                    <p>${new Date(inc.created_at).toLocaleTimeString()}</p>
+                </div>
+            `).join('');
+        }
+
+        function updateMapMarkers() {
+            Object.values(markers).forEach(m => map.removeLayer(m));
+            markers = {};
+            activeIncidents.forEach(inc => {
+                const marker = L.circleMarker([inc.lat, inc.lng], {
+                    color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.5, radius: 10
+                }).addTo(map);
+                marker.bindPopup(`<b>${inc.user_email}</b><br>${inc.type}`);
+                markers[inc.id] = marker;
+            });
+        }
+
+        function selectIncident(id) {
+            selectedIncidentId = id;
+            const inc = activeIncidents.find(i => i.id === id);
+            document.getElementById('selected-incident-info').style.display = 'block';
+            document.getElementById('target-user').innerText = inc.user_email;
+            document.getElementById('incident-type').innerText = `TIPO: ${inc.type.toUpperCase()}`;
+            map.setView([inc.lat, inc.lng], 17);
+            loadChatMessages();
+            renderIncidents();
+        }
+
+        async function loadChatMessages() {
+            if (!selectedIncidentId) return;
+            try {
+                const response = await fetch(`/api/chat/messages/${selectedIncidentId}`);
+                const messages = await response.json();
+                const container = document.getElementById('chat-messages');
+                container.innerHTML = messages.map(msg => `
+                    <div class="${msg.is_responder ? 'msg-responder' : 'msg-student'}">${msg.message}</div>
+                `).join('');
+                container.scrollTop = container.scrollHeight;
+            } catch (e) { console.error(e); }
+        }
+
+        let isSending = false;
+        async function sendMessage() {
+            if (isSending) return;
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!selectedIncidentId || !msg) return;
+
+            isSending = true;
+            input.value = '';
+
+            try {
+                await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        incident_id: selectedIncidentId,
+                        sender_email: "equipa-resposta@laac.pt",
+                        message: msg,
+                        is_responder: true
+                    })
+                });
+                loadChatMessages();
+            } catch (e) { 
+                console.error(e);
+                input.value = msg;
+            } finally {
+                isSending = false;
+            }
+        }
+
+        async function resolveIncident() {
+            if (!selectedIncidentId) return;
+            const summary = prompt("Resumo do acontecimento (obrigatório para fechar):");
+            if (!summary) {
+                alert("É necessário um resumo para finalizar o incidente.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/emergency/alerts/${selectedIncidentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: "RESOLVIDO",
+                        resolution_note: summary
+                    })
+                });
+
+                if (response.ok) {
+                    alert("Incidente finalizado com sucesso.");
+                    selectedIncidentId = null;
+                    document.getElementById('selected-incident-info').style.display = 'none';
+                    document.getElementById('chat-messages').innerHTML = `
+                        <div style="text-align: center; margin-top: 5rem; opacity: 0.3;">
+                            <i class="fa-solid fa-comments fa-3x"></i>
+                            <p style="margin-top: 1rem;">Seleciona um incidente para<br>estabelecer contacto</p>
+                        </div>
+                    `;
+                    refreshIncidentsList();
+                }
+            } catch (e) {
+                console.error("Erro ao finalizar:", e);
+                alert("Erro ao finalizar incidente.");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            refreshIncidentsList();
+            setInterval(pollNotifications, 3000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Calendário do Professor</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .prof-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            width: 95%;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 { margin: 0; font-weight: 700; color: #38bdf8; }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        select, input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .timetable {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 2rem;
+            overflow-x: auto;
+        }
+
+        .time-label {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .day-header {
+            text-align: center;
+            padding: 1rem;
+            font-weight: 600;
+            background: rgba(56, 189, 248, 0.1);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .slot {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .slot:hover {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #38bdf8;
+        }
+
+        .slot.active {
+            background: #38bdf8;
+            color: #0f172a;
+            border-style: solid;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px;
+            text-align: center;
+        }
+
+        .slot.occupied {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #e2e8f0;
+            cursor: not-allowed;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.6rem;
+            padding: 2px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .btn-save {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 2rem;
+            align-self: flex-end;
+            transition: transform 0.2s;
+        }
+
+        .btn-save:hover {
+            transform: scale(1.05);
+            background: #7dd3fc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="prof-container">
+        <div class="glass">
+            <header class="header">
+                <div>
+                    <h1>Planeamento Académico</h1>
+                    <p class="text-muted">Marque as suas aulas para o semestre</p>
+                </div>
+                <button onclick="window.location.href='index.html'" style="background:none; border: 1px solid rgba(255,255,255,0.2); color:white; padding: 0.5rem 1rem; border-radius: 8px; cursor:pointer;">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar ao Painel
+                </button>
+            </header>
+
+            <div class="controls">
+                <div class="input-group">
+                    <label>Ano Letivo</label>
+                    <select id="academic-year">
+                        <option value="2024/2025">2024/2025</option>
+                        <option value="2025/2026">2025/2026</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Semestre</label>
+                    <select id="semester">
+                        <option value="1">1º Semestre</option>
+                        <option value="2">2º Semestre</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Ciclo de Estudos</label>
+                    <select id="cycle-list" onchange="loadCourses(this.value)">
+                        <option value="">Selecione o ciclo</option>
+                        <option value="1ºs Ciclos/Licenciaturas">Licenciaturas</option>
+                        <option value="Mestrados Integrados">Mestrados Integrados</option>
+                        <option value="2ºs Ciclos/Mestrados">Mestrados</option>
+                        <option value="3ºs Ciclos/Doutoramentos">Doutoramentos</option>
+                        <option value="Pós-Doutoramentos">Pós-Doutoramentos</option>
+                        <option value="Cursos Não Conferentes de Grau > Pós-Graduações">Pós-Graduações</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Curso</label>
+                    <select id="course-list" onchange="updateYearOptions()">
+                        <option value="">Selecione um ciclo primeiro</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Ano Curricular</label>
+                    <select id="curricular-year" onchange="loadSubjects()">
+                        <option value="">Selecione um curso primeiro</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Disciplina</label>
+                    <select id="subject-list">
+                        <option value="">Selecione um curso primeiro</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Tipo de Aula</label>
+                    <select id="class-type">
+                        <option value="Teórica">Teórica</option>
+                        <option value="Prática">Prática</option>
+                        <option value="Teórico-Prática">Teórico-Prática</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Sala</label>
+                    <input type="text" id="room-name" placeholder="Ex: 6.01 (6ª fase)">
+                </div>
+            </div>
+
+            <div class="timetable" id="timetable">
+                <!-- Will be populated by JS -->
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="btn-save" onclick="saveSchedules()">Salvar e Aplicar ao Semestre</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedSlots = [];
+        let currentProfessorId = null;
+
+        window.onload = async () => {
+            const role = localStorage.getItem('laac_role');
+            if (role !== 'professor' && role !== 'admin') {
+                alert('Acesso negado!');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Get professor profile only if role is professor
+            const userId = localStorage.getItem('laac_user_id');
+            if (role === 'professor') {
+                try {
+                    const response = await fetch(`/api/professors?user_id=${userId}`);
+                    const profs = await response.json();
+                    if (profs.length > 0) {
+                        currentProfessorId = profs[0].id;
+                    }
+                } catch (error) {
+                    console.error('Erro ao obter perfil de professor:', error);
+                }
+            }
+
+            initTimetable();
+        };
+
+        const days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+        const hours = Array.from({length: 12}, (_, i) => i + 8); // 8:00 to 19:00
+
+        function initTimetable() {
+            const container = document.getElementById('timetable');
+            container.innerHTML = '<div></div>'; 
+
+            days.forEach(day => {
+                const div = document.createElement('div');
+                div.className = 'day-header';
+                div.textContent = day;
+                container.appendChild(div);
+            });
+
+            hours.forEach(hour => {
+                const label = document.createElement('div');
+                label.className = 'time-label';
+                label.textContent = `${hour}:00`;
+                container.appendChild(label);
+
+                for (let d = 1; d <= 5; d++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.id = `slot-${d}-${hour}`;
+                    slot.dataset.day = d;
+                    slot.dataset.hour = hour;
+                    slot.onclick = () => toggleSlot(slot);
+                    container.appendChild(slot);
+                }
+            });
+        }
+
+
+
+        function toggleSlot(slot) {
+            if (slot.classList.contains('occupied')) return;
+
+            const subjectId = document.getElementById('subject-list').value;
+            if (!subjectId) {
+                alert('Por favor, selecione uma disciplina primeiro.');
+                return;
+            }
+
+            const subjectName = document.getElementById('subject-list').options[document.getElementById('subject-list').selectedIndex].text;
+            const type = document.getElementById('class-type').value;
+
+            if (slot.classList.contains('active')) {
+                slot.classList.remove('active');
+                slot.innerHTML = '';
+                selectedSlots = selectedSlots.filter(s => s.element !== slot);
+            } else {
+                slot.classList.add('active');
+                slot.innerHTML = `<span>${subjectName}</span><br><span>(${type})</span>`;
+                selectedSlots.push({
+                    element: slot,
+                    day: slot.dataset.day,
+                    hour: slot.dataset.hour,
+                    subject_id: subjectId,
+                    type: type
+                });
+            }
+        }
+
+        async function loadCourses(cycle) {
+            if (!cycle) {
+                document.getElementById('course-list').innerHTML = '<option value="">Selecione um ciclo primeiro</option>';
+                document.getElementById('curricular-year').innerHTML = '<option value="">Selecione um curso primeiro</option>';
+                document.getElementById('subject-list').innerHTML = '<option value="">Selecione um curso primeiro</option>';
+                return;
+            }
+            try {
+                const response = await fetch(`/api/courses?study_cycle=${encodeURIComponent(cycle)}`);
+                const courses = await response.json();
+                console.log("DEBUG: Cursos carregados para o ciclo:", cycle, courses);
+                const select = document.getElementById('course-list');
+                select.innerHTML = '<option value="">Selecione um curso</option>';
+                courses.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.name} (${c.acronym})`;
+                    select.appendChild(opt);
+                });
+                
+                // Clear sub-selectors
+                document.getElementById('curricular-year').innerHTML = '<option value="">Selecione um curso primeiro</option>';
+                document.getElementById('subject-list').innerHTML = '<option value="">Selecione um curso primeiro</option>';
+            } catch (error) {
+                console.error('Erro ao carregar cursos:', error);
+            }
+        }
+
+        function updateYearOptions() {
+            const cycle = document.getElementById('cycle-list').value;
+            const courseId = document.getElementById('course-list').value;
+            const yearSelect = document.getElementById('curricular-year');
+            
+            if (!courseId) {
+                yearSelect.innerHTML = '<option value="">Selecione um curso primeiro</option>';
+                return;
+            }
+
+            let maxYears = 3; // Default for Licenciatura
+            if (cycle === 'Mestrados Integrados') maxYears = 5;
+            else if (cycle === '2ºs Ciclos/Mestrados') maxYears = 2;
+            else if (cycle === '3ºs Ciclos/Doutoramentos') maxYears = 3;
+            else if (cycle === 'Pós-Doutoramentos' || cycle === 'Pós-Graduações') maxYears = 1;
+
+            yearSelect.innerHTML = '<option value="">Selecione o ano</option>';
+            for (let i = 1; i <= maxYears; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `${i}º Ano`;
+                yearSelect.appendChild(opt);
+            }
+            
+            // Clear subjects
+            document.getElementById('subject-list').innerHTML = '<option value="">Selecione o ano primeiro</option>';
+        }
+
+        async function loadSubjects() {
+            const courseId = document.getElementById('course-list').value;
+            const year = document.getElementById('curricular-year').value;
+            
+            if (!courseId || !year) {
+                document.getElementById('subject-list').innerHTML = '<option value="">Selecione curso e ano primeiro</option>';
+                return;
+            }
+            try {
+                const profQuery = currentProfessorId ? `&professor_id=${currentProfessorId}` : '';
+                const response = await fetch(`/api/subjects?course_id=${courseId}&curricular_year=${year}${profQuery}`);
+                const subjects = await response.json();
+                const select = document.getElementById('subject-list');
+                select.innerHTML = '<option value="">Selecione uma disciplina</option>';
+                subjects.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    select.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar disciplinas:', error);
+            }
+            loadExistingClasses();
+        }
+
+        async function loadExistingClasses() {
+            const courseId = document.getElementById('course-list').value;
+            const year = document.getElementById('curricular-year').value;
+            
+            if (!courseId || !year) return;
+
+            // Clear previous grid state (except active selections we might want to keep? No, clear all for fresh view)
+            document.querySelectorAll('.slot').forEach(s => {
+                s.classList.remove('occupied');
+                s.classList.remove('active');
+                s.innerHTML = '';
+            });
+            selectedSlots = [];
+
+            try {
+                const response = await fetch(`/api/classes?course_id=${courseId}&curricular_year=${year}`);
+                const classes = await response.json();
+                
+                classes.forEach(cls => {
+                    const hour = parseInt(cls.start_time.split(':')[0]);
+                    const slot = document.getElementById(`slot-${cls.weekday}-${hour}`);
+                    if (slot) {
+                        slot.classList.add('occupied');
+                        slot.innerHTML = `<strong>${cls.subject_name}</strong><br><span>(${cls.type})</span><br><em style="color:#38bdf8">${cls.location_id || 'S/ Sala'}</em>`;
+                        slot.onclick = () => confirmDelete(cls.id, cls.subject_name);
+                        
+                        const nextHour = hour + 1;
+                        const nextSlot = document.getElementById(`slot-${cls.weekday}-${nextHour}`);
+                        if (nextSlot) {
+                            nextSlot.classList.add('occupied');
+                            nextSlot.innerHTML = `<span style="font-size:0.5rem">Continuação</span>`;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar ocupação:', error);
+            }
+        }
+
+        async function confirmDelete(classId, subjectName) {
+            if (confirm(`Desejas remover a aula de ${subjectName}?`)) {
+                try {
+                    const response = await fetch(`/api/classes/${classId}`, {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        alert('Aula removida!');
+                        loadExistingClasses();
+                    }
+                } catch (error) {
+                    alert('Erro ao remover aula.');
+                }
+            }
+        }
+
+        async function saveSchedules() {
+            if (selectedSlots.length === 0) {
+                alert('Nenhuma aula selecionada na planilha.');
+                return;
+            }
+
+            try {
+                const room_id = document.getElementById('room-name').value;
+                for (const slot of selectedSlots) {
+                    const startTime = `${slot.hour.padStart(2, '0')}:00:00`;
+                    const endTime = `${(parseInt(slot.hour) + 2).toString().padStart(2, '0')}:00:00`; 
+
+                    await fetch('/api/classes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            subject_id: slot.subject_id,
+                            weekday: slot.day,
+                            start_time: startTime,
+                            end_time: endTime,
+                            type: slot.type,
+                            location_id: room_id
+                        })
+                    });
+                }
+                alert('Aulas marcadas com sucesso!');
+                loadExistingClasses(); // Refresh to show them as occupied
+            } catch (error) {
+                alert('Erro ao salvar as aulas. Verifique a consola.');
+                console.error(error);
+            }
+        }
+
+        initTimetable();
+    </script>
+</body>
+</html>

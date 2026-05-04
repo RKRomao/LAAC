@@ -1,0 +1,60 @@
+{
+    "residences_and_canteens": [
+        {
+            "name": "Cantina de Santo António (Polo I)",
+            "coordinates": {
+                "lat": 40.276426,
+                "lng": -7.511514
+            }
+        },
+        {
+            "name": "Cantina do Polo III (FCS)",
+            "coordinates": {
+                "lat": 40.271408,
+                "lng": -7.503598
+            }
+        },
+        {
+            "name": "Residência de Santo António",
+            "coordinates": {
+                "lat": 40.276686,
+                "lng": -7.51138
+            }
+        },
+        {
+            "name": "Residência Pedro Álvares Cabral (PAC)",
+            "coordinates": {
+                "lat": 40.286209,
+                "lng": -7.516417
+            }
+        },
+        {
+            "name": "Residência da Boavida",
+            "coordinates": {
+                "lat": 40.279884,
+                "lng": -7.50798
+            }
+        },
+        {
+            "name": "Residência VI (Conceição)",
+            "coordinates": {
+                "lat": 40.283084,
+                "lng": -7.502833
+            }
+        },
+        {
+            "name": "Residência II (Fonte do Lameiro)",
+            "coordinates": {
+                "lat": 40.278298,
+                "lng": -7.511323
+            }
+        },
+        {
+            "name": "Residência I (Morais do Convento)",
+            "coordinates": {
+                "lat": 40.273647,
+                "lng": -7.507413
+            }
+        }
+    ]
+}

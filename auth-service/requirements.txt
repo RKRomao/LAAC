@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+mysqlclient
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+PyJWT
+python-dotenv
+email-validator
+httpx

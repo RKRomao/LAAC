@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Login & Registo</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .auth-page {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 3rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .auth-card {
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .auth-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 0.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            opacity: 0.7;
+        }
+
+        .auth-tab.active {
+            background: var(--primary);
+            opacity: 1;
+        }
+
+        .form-group {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 1.2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1rem;
+        }
+
+        .btn-auth:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .auth-footer {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Abstract shapes */
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+        }
+        .shape-1 { width: 400px; height: 400px; background: rgba(99, 102, 241, 0.2); top: -100px; right: -100px; }
+        .shape-2 { width: 300px; height: 300px; background: rgba(236, 72, 153, 0.1); bottom: -50px; left: -50px; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-page">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+
+        <div class="auth-container">
+            <div class="auth-card glass">
+                <div class="auth-header">
+                    <h1 id="auth-title">Bem-vindo de volta</h1>
+                    <p id="auth-subtitle" class="text-muted">Introduz os teus dados para entrar.</p>
+                </div>
+
+                <div class="auth-tabs">
+                    <div id="tab-login" class="auth-tab active" onclick="switchTab('login')">Login</div>
+                    <div id="tab-register" class="auth-tab" onclick="switchTab('register')">Registo</div>
+                </div>
+
+                <form id="auth-form" onsubmit="handleAuth(event)">
+                    <div class="form-group">
+                        <label>E-mail Académico</label>
+                        <input type="email" id="email" class="auth-input" placeholder="exemplo@ubi.pt" autocomplete="username" required>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Palavra-passe</label>
+                        <input type="password" id="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" required>
+                    </div>
+
+                    <div id="register-fields" style="display: none; margin-top: 1rem;">
+                        <div class="form-group">
+                            <label>Confirmar Palavra-passe</label>
+                            <input type="password" id="confirm-password" class="auth-input" placeholder="••••••••" autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-auth" id="submit-btn">Entrar</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p id="footer-text">Não tens conta? <a href="#" onclick="switchTab('register')">Cria uma agora</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'login';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const submitBtn = document.getElementById('submit-btn');
+            const footerText = document.getElementById('footer-text');
+            const registerFields = document.getElementById('register-fields');
+            
+            document.getElementById('tab-login').classList.remove('active');
+            document.getElementById('tab-register').classList.remove('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            if (tab === 'login') {
+                title.innerText = 'Bem-vindo de volta';
+                subtitle.innerText = 'Introduz os teus dados para entrar.';
+                submitBtn.innerText = 'Entrar';
+                footerText.innerHTML = 'Não tens conta? <a href="#" onclick="switchTab(\'register\')">Cria uma agora</a>';
+                registerFields.style.display = 'none';
+            } else {
+                title.innerText = 'Cria a tua conta';
+                subtitle.innerText = 'Junta-te à comunidade LAAC UBI.';
+                submitBtn.innerText = 'Registar';
+                footerText.innerHTML = 'Já tens conta? <a href="#" onclick="switchTab(\'login\')">Faz login</a>';
+                registerFields.style.display = 'block';
+            }
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const endpoint = currentTab === 'login' ? '/api/auth/login' : '/api/auth/register';
+            
+            if (currentTab === 'register') {
+                const confirmPass = document.getElementById('confirm-password').value;
+                if (password !== confirmPass) {
+                    alert('As palavras-passe não coincidem!');
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (currentTab === 'login') {
+                        localStorage.setItem('laac_token', data.access_token);
+                        localStorage.setItem('laac_role', data.role);
+                        localStorage.setItem('laac_user_id', data.user_id);
+                        localStorage.setItem('laac_user_email', email);
+                        alert('Login realizado com sucesso!');
+                        if (data.role === 'admin') {
+                            window.location.href = 'admin.html';
+                        } else if (data.role.includes('Response-team')) {
+                            window.location.href = 'responder.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    } else {
+                        alert('Registo concluído! Faz login agora.');
+                        switchTab('login');
+                    }
+                } else {
+                    alert('Erro: ' + data.detail);
+                }
+            } catch (error) {
+                alert('Erro na comunicação com o servidor.');
+            }
+        }
+    </script>
+</body>
+</html>

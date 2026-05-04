@@ -1,0 +1,188 @@
+{
+    "campuses": [
+        {
+            "name": "Polo I",
+            "address": "Universidade da Beira Interior, R. Marquês de Ávila e Bolama, 6201-001 Covilhã",
+            "phone": "275319700",
+            "coordinates": {
+                "lat": 40.277881190830435,
+                "lng": -7.508995292989724
+            },
+            "description": " Entrada: Salas 2.12 \\n Parada: \\n 1º andar: CREA, CinUbiteca \\n 2º andar: Salas 2.01 - 2.11 \\n Departamento de quimica: \\n Salas 4.01 - 4.15 \\n Laboratorios 4...-... \\n auditorios \\n Salas de reunião \\n Serviços Sociais"
+        },
+        {
+            "name": "FAL",
+            "address": "Faculdade de Artes e Letras UBI (Parada) - R. Marquês de Ávila e Bolama, 6201-001 Covilhã",
+            "phone": "275242023",
+            "coordinates": {
+                "lat": 40.27755625108418,
+                "lng": -7.508597796506018
+            },
+            "description": " Resº andar: Laboratorios de Modelação \\n 1º andar: 8.01 - 8.12 \\n Laboratorios de fisica \\n 2º andar: Salas 8.13 - 8.24 \\n Laboratorios \\n auditorios \\n Cantina das Engenharias"
+        },
+        {
+            "name": "Departamento de Informática",
+            "address": "6ª fase - Caminho do Biribau, Covilhã",
+            "phone": "275319700",
+            "coordinates": {
+                "lat": 40.277306468118155,
+                "lng": -7.5099329226218385
+            },
+            "description": " Salas 6.01 - 6.27 \\n Laboratorios de informatica 6.27 \\n auditorios \\n Salas de reunião"
+        },
+        {
+            "name": "Centro Clínico Ciências da Visão",
+            "address": "Bloco 12 - Caminho do Biribau 319 6200, Covilhã",
+            "phone": "275329015",
+            "coordinates": {
+                "lat": 40.277269634297696,
+                "lng": -7.508345054906808
+            },
+            "description": ""
+        },
+        {
+            "name": "Serviços Académicos",
+            "address": "R. Marquês de Ávila e Bolama 44, Covilhã",
+            "phone": "275320690",
+            "coordinates": {
+                "lat": 40.2780799737172,
+                "lng": -7.507926630297995
+            },
+            "description": ""
+        },
+        {
+            "name": "Biblioteca Central UBI",
+            "address": "R. Marquês de Ávila e Bolama 48, Covilhã",
+            "phone": "275319850",
+            "coordinates": {
+                "lat": 40.27790399174121,
+                "lng": -7.5072453492345605
+            },
+            "description": ""
+        },
+        {
+            "name": "Faculdade de Engenharia",
+            "address": "Calçada Fonte do Lameiro 6, 6200-358 Covilhã",
+            "phone": "275319705",
+            "coordinates": {
+                "lat": 40.27852708292603,
+                "lng": -7.511883064504962
+            },
+            "description": ""
+        },
+        {
+            "name": "Arquitetura UBI",
+            "address": "R. Conselheiro Joaquim Pessoa 7, Covilhã",
+            "phone": "N/A",
+            "coordinates": {
+                "lat": 40.27837975018256,
+                "lng": -7.510761901145034
+            },
+            "description": ""
+        },
+        {
+            "name": "Museu dos Lanifícios",
+            "address": "Real Fábrica Veiga, Caminho do Biribau 319, 6201-001 Covilhã",
+            "phone": "275241411",
+            "coordinates": {
+                "lat": 40.27700053642409,
+                "lng": -7.508154793994176
+            },
+            "description": ""
+        },
+        {
+            "name": "Reitoria da UBI",
+            "address": "R. da Carreira de Tiro 6, 6200-001 Covilhã",
+            "phone": "275319700",
+            "coordinates": {
+                "lat": 40.27441597533532,
+                "lng": -7.507980846839372
+            },
+            "description": ""
+        },
+        {
+            "name": "Departamento de Ciências do Desporto",
+            "address": "R. do Bairro da Nossa Sra. da Conceição 22, Covilhã",
+            "phone": "275329153",
+            "coordinates": {
+                "lat": 40.27337677934837,
+                "lng": -7.506565007012238
+            },
+            "description": ""
+        },
+        {
+            "name": "Pavilhão da UBI nº1",
+            "address": "R. Morais do Convento 4, Covilhã",
+            "phone": "N/A",
+            "coordinates": {
+                "lat": 40.273342429026286,
+                "lng": -7.50645236770454
+            },
+            "description": ""
+        },
+        {
+            "name": "Residência IV",
+            "address": "R. do Bairro da Nossa Sra. da Conceição 22-32, Covilhã",
+            "phone": "N/A",
+            "coordinates": {
+                "lat": 40.27337677934837,
+                "lng": -70.50656500701224
+            },
+            "description": ""
+        },
+        {
+            "name": "Faculdade de Ciências Sociais e Humanas (Polo IV)",
+            "address": "R. José Caetano Júnior 149, 6200-209 Covilhã",
+            "phone": "275319670",
+            "coordinates": {
+                "lat": 40.289289695690535,
+                "lng": -7.514704478428271
+            },
+            "description": ""
+        },
+        {
+            "name": "Faculdade de Ciências da Saúde",
+            "address": "Av. Infante D. Henrique, 6200-506 Covilhã",
+            "phone": "275329002",
+            "coordinates": {
+                "lat": 40.26785037105085,
+                "lng": -7.494843868998304
+            },
+            "description": ""
+        }
+    ],
+    "polos": [
+        {
+            "name": "Polo I",
+            "coordinates": {
+                "lat": 40.277491,
+                "lng": -7.508594
+            },
+            "description": "Fac. de Artes e Letras / Biblioteca Central"
+        },
+        {
+            "name": "Polo II",
+            "coordinates": {
+                "lat": 40.278435,
+                "lng": -7.511878
+            },
+            "description": "Fac. de Engenharia / Reitoria / SASUBI"
+        },
+        {
+            "name": "Polo III",
+            "coordinates": {
+                "lat": 40.271111,
+                "lng": -7.505311
+            },
+            "description": "Fac. de Ciências da Saúde (FCS)"
+        },
+        {
+            "name": "Polo IV",
+            "coordinates": {
+                "lat": 40.288652,
+                "lng": -7.515056
+            },
+            "description": "Fac. de Ciências Sociais e Humanas (FCSH)"
+        }
+    ]
+}

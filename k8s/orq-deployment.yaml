@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: orq
+spec:
+  ports:
+  - port: 8000
+  selector:
+    app: orq
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orq
+spec:
+  selector:
+    matchLabels:
+      app: orq
+  template:
+    metadata:
+      labels:
+        app: orq
+    spec:
+      containers:
+      - name: orq
+        image: laac-orq:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DB_HOST
+          value: "mariadb"
+        - name: DB_USER
+          value: "laac_user"
+        - name: DB_PASS
+          value: "laac_pass"
+        - name: DB_NAME
+          value: "laac_db"
