@@ -7,10 +7,11 @@ services:
       MARIADB_USER: laac_user
       MARIADB_PASSWORD: laac_pass
       MARIADB_ROOT_PASSWORD: root_pass
-    ports:
-      - "3306:3306"
+    # Ports removed for security (internal only)
+    # ports:
+    #   - "3306:3306"
     volumes:
-      - ./DB-servevice/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./DB-service/init.sql:/docker-entrypoint-initdb.d/init.sql
       - mariadb_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--password=root_pass"]
@@ -42,8 +43,8 @@ services:
       - FEED_SERVICE_URL=http://feed-service:8013
       - CALENDAR_SERVICE_URL=http://calendar-service:8011
       - ACADEMIC_SERVICE_URL=http://academic-service:3001
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -54,8 +55,8 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     volumes:
       - ./map-service:/app
-    ports:
-      - "8001:8001"
+    # ports:
+    #   - "8001:8001"
 
   auth-service:
     build: ./auth-service
@@ -69,8 +70,8 @@ services:
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
       - LOGGING_SERVICE_URL=http://logging-service:8000
-    ports:
-      - "8002:8002"
+    # ports:
+    #   - "8002:8002"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -86,8 +87,8 @@ services:
       - DB_USER=laac_user
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
-    ports:
-      - "8003:8000"
+    # ports:
+    #   - "8003:8000"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -98,8 +99,8 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8004 --reload
     volumes:
       - ./FAQ-service:/app
-    ports:
-      - "8004:8004"
+    # ports:
+    #   - "8004:8004"
 
   emergency-service:
     build: ./emergency-service
@@ -114,8 +115,8 @@ services:
       - DB_NAME=laac_db
       - LOGGING_SERVICE_URL=http://logging-service:8000
       - NOTIFICATION_SERVICE_URL=http://notification-service:8006
-    ports:
-      - "8005:8005"
+    # ports:
+    #   - "8005:8005"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -126,8 +127,8 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8006 --reload
     volumes:
       - ./notification-service:/app
-    ports:
-      - "8006:8006"
+    # ports:
+    #   - "8006:8006"
 
   chat-service:
     build: ./chat-service
@@ -141,8 +142,8 @@ services:
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
       - NOTIFICATION_SERVICE_URL=http://notification-service:8006
-    ports:
-      - "8007:8007"
+    # ports:
+    #   - "8007:8007"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -159,8 +160,8 @@ services:
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
       - NOTIFICATION_SERVICE_URL=http://notification-service:8006
-    ports:
-      - "8008:8008"
+    # ports:
+    #   - "8008:8008"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -176,8 +177,8 @@ services:
       - DB_USER=laac_user
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
-    ports:
-      - "8010:8010"
+    # ports:
+    #   - "8010:8010"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -186,14 +187,15 @@ services:
     build: ./calendar-service
     container_name: laac-calendar-service
     environment:
-      - DB_HOST=mariadb
+      - DB_HOST=calendar-mariadb
       - DB_USER=laac_user
       - DB_PASS=laac_pass
-      - DB_NAME=laac_db
-    ports:
-      - "8011:8011"
+      - DB_NAME=laac_calendar_db
+      - ACADEMIC_SERVICE_URL=http://academic-service:3001
+    # ports:
+    #   - "8011:8011"
     depends_on:
-      mariadb:
+      calendar-mariadb:
         condition: service_healthy
 
   academic-service:
@@ -204,8 +206,8 @@ services:
       - DB_USER=laac_user
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
-    ports:
-      - "8012:3001"
+    # ports:
+    #   - "8012:3001"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -221,8 +223,8 @@ services:
       - DB_USER=laac_user
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
-    ports:
-      - "8014:8012"
+    # ports:
+    #   - "8014:8012"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -238,21 +240,75 @@ services:
       - DB_USER=laac_user
       - DB_PASS=laac_pass
       - DB_NAME=laac_db
-    ports:
-      - "8015:8013"
+    # ports:
+    #   - "8015:8013"
     depends_on:
       mariadb:
         condition: service_healthy
+
+  calendar-mariadb:
+    image: mariadb:10.11
+    container_name: laac-calendar-mariadb
+    environment:
+      MARIADB_DATABASE: laac_calendar_db
+      MARIADB_USER: laac_user
+      MARIADB_PASSWORD: laac_pass
+      MARIADB_ROOT_PASSWORD: root_pass
+    # ports:
+    #   - "3307:3306"
+    volumes:
+      - ./calendar-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - calendar_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--password=root_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build: ./frontent-service
     container_name: laac-frontend
     volumes:
       - ./frontent-service:/usr/share/nginx/html
+      - ./frontent-service/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - orq
 
+  ticket-service:
+    build: ./ticket-service
+    container_name: laac-ticket-service
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+    # ports:
+    #   - "8016:8016"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  backup-service:
+    build: ./backup-service
+    container_name: laac-backup-service
+    environment:
+      - DB_HOST=mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_db
+      - CALENDAR_DB_HOST=calendar-mariadb
+      - CALENDAR_DB_NAME=laac_calendar_db
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      calendar-mariadb:
+        condition: service_healthy
+
+
 volumes:
   mariadb_data:
+  calendar_mariadb_data:

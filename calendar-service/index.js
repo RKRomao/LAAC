@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const moment = require('moment');
+const axios = require('axios');
 require('moment/locale/pt');
 moment.locale('pt');
 const classDates = require('./ClassDates/index.js');
@@ -11,14 +12,36 @@ app.use(cors());
 app.use(express.json());
 
 const dbConfig = {
-    host: process.env.DB_HOST || 'mariadb',
+    host: process.env.DB_HOST || 'calendar-mariadb',
     user: process.env.DB_USER || 'laac_user',
     password: process.env.DB_PASS || 'laac_pass',
-    database: process.env.DB_NAME || 'laac_db'
+    database: process.env.DB_NAME || 'laac_calendar_db'
 };
+
+const ACADEMIC_SERVICE_URL = process.env.ACADEMIC_SERVICE_URL || 'http://academic-service:3001';
 
 async function getDbConnection() {
     return await mysql.createConnection(dbConfig);
+}
+
+// Helper to fetch subject name
+async function getSubjectNames(subjectIds) {
+    try {
+        if (!subjectIds || subjectIds.length === 0) return {};
+        // Fetch all subjects (or filter if academic-service supports it)
+        const response = await axios.get(`${ACADEMIC_SERVICE_URL}/subjects`);
+        const subjects = response.data;
+        const map = {};
+        subjects.forEach(s => {
+            if (subjectIds.includes(s.id)) {
+                map[s.id] = s.name;
+            }
+        });
+        return map;
+    } catch (error) {
+        console.error('Error fetching subjects:', error.message);
+        return {};
+    }
 }
 
 app.get('/calendar/:academic_year', async (req, res) => {
@@ -44,12 +67,12 @@ app.get('/calendar/:academic_year', async (req, res) => {
             ];
         }
 
-        // 2. Get all classes for these subjects
-        const [classes] = await connection.execute(`
-            SELECT c.*, s.name as subject_name 
-            FROM classes c
-            JOIN subjects s ON c.subject_id = s.id
-        `);
+        // 2. Get all classes
+        const [classes] = await connection.execute('SELECT * FROM classes');
+        
+        // 3. Fetch subject names from academic service
+        const subjectIds = [...new Set(classes.map(c => c.subject_id))];
+        const subjectMap = await getSubjectNames(subjectIds);
 
         const result = {};
 
@@ -60,26 +83,23 @@ app.get('/calendar/:academic_year', async (req, res) => {
             const startDate = moment(semester.start_date).format('YYYY-MM-DD');
             const endDate = moment(semester.end_date).format('YYYY-MM-DD');
 
-            // If no classes exist, we still want to show the structure if needed
             if (classes.length === 0) {
-                // Initialize at least the first month of the semester to show structure
                 const firstMonth = moment(startDate).format('MMMM');
                 result[semKey][firstMonth] = {};
             }
 
             for (const cls of classes) {
-                // Generate dates for this class in this semester
                 const dates = classDates.generate({
                     format: 'YYYY-MM-DD',
                     start: startDate,
                     end: endDate,
                     weekday: cls.weekday,
-                    breaks: [] // Can be extended if breaks are added to DB
+                    breaks: []
                 });
 
                 if (dates && dates.length > 0) {
                     dates.forEach(date => {
-                        const monthName = date.format('MMMM'); // e.g., "September"
+                        const monthName = date.format('MMMM');
                         const day = date.date();
                         const dateStr = date.format('YYYY-MM-DD');
 
@@ -92,7 +112,7 @@ app.get('/calendar/:academic_year', async (req, res) => {
                         }
 
                         result[semKey][monthName][day].push({
-                            subject: cls.subject_name,
+                            subject: subjectMap[cls.subject_id] || `Subject ${cls.subject_id}`,
                             type: cls.type,
                             start_time: cls.start_time,
                             end_time: cls.end_time,
@@ -113,31 +133,41 @@ app.get('/calendar/:academic_year', async (req, res) => {
     }
 });
 
-// Get classes filtered by course and year
 app.get('/classes', async (req, res) => {
     const { course_id, curricular_year } = req.query;
     let connection;
     try {
         connection = await getDbConnection();
-        let query = `
-            SELECT c.*, s.name as subject_name 
-            FROM classes c
-            JOIN subjects s ON c.subject_id = s.id
-            WHERE 1=1
-        `;
-        let params = [];
-        if (course_id) {
-            query += ' AND s.course_id = ?';
-            params.push(course_id);
+        // Since subjects are in another service, we first fetch relevant subject IDs
+        let subjectIds = [];
+        if (course_id || curricular_year) {
+            const subjectsRes = await axios.get(`${ACADEMIC_SERVICE_URL}/subjects`, {
+                params: { course_id, curricular_year }
+            });
+            subjectIds = subjectsRes.data.map(s => s.id);
         }
-        if (curricular_year) {
-            query += ' AND s.curricular_year = ?';
-            params.push(curricular_year);
+
+        let query = 'SELECT * FROM classes WHERE 1=1';
+        let params = [];
+        if (subjectIds.length > 0) {
+            query += ` AND subject_id IN (${subjectIds.join(',')})`;
+        } else if (course_id || curricular_year) {
+            // No subjects found for these filters
+            return res.json([]);
         }
         
         const [classes] = await connection.execute(query, params);
-        console.log(`DEBUG: Found ${classes.length} classes for course ${course_id} year ${curricular_year}`);
-        res.json(classes);
+        
+        // Enrich with subject names
+        const allSubjectIds = [...new Set(classes.map(c => c.subject_id))];
+        const subjectMap = await getSubjectNames(allSubjectIds);
+        
+        const enrichedClasses = classes.map(c => ({
+            ...c,
+            subject_name: subjectMap[c.subject_id] || `Subject ${c.subject_id}`
+        }));
+
+        res.json(enrichedClasses);
     } catch (error) {
         console.error('ERROR in GET /classes:', error);
         res.status(500).json({ error: error.message });
@@ -146,14 +176,18 @@ app.get('/classes', async (req, res) => {
     }
 });
 
-// Delete a class schedule
-app.delete('/classes/:id', async (req, res) => {
-    const { id } = req.params;
+
+// Endpoint to report schedule problems
+app.post('/reports/schedule', async (req, res) => {
+    const { user_id, class_id, subject_name, description } = req.body;
     let connection;
     try {
         connection = await getDbConnection();
-        await connection.execute('DELETE FROM classes WHERE id = ?', [id]);
-        res.json({ message: 'Aula removida com sucesso' });
+        await connection.execute(
+            'INSERT INTO schedule_reports (user_id, class_id, subject_name, description) VALUES (?, ?, ?, ?)',
+            [user_id || 0, class_id || null, subject_name || null, description]
+        );
+        res.status(201).json({ message: 'Problema reportado com sucesso' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     } finally {
@@ -161,25 +195,23 @@ app.delete('/classes/:id', async (req, res) => {
     }
 });
 
-// Create a new class schedule
-app.post('/classes', async (req, res) => {
-    const { subject_id, weekday, start_time, end_time, type, location_id } = req.body;
+// Endpoint to view reports (for staff)
+app.get('/reports/schedule', async (req, res) => {
     let connection;
     try {
         connection = await getDbConnection();
-        const [result] = await connection.execute(
-            'INSERT INTO classes (subject_id, weekday, start_time, end_time, type, location_id) VALUES (?, ?, ?, ?, ?, ?)',
-            [subject_id, weekday, start_time, end_time, type, location_id || null]
-        );
-        res.status(201).json({ message: 'Aula marcada com sucesso', id: result.insertId });
+        const [reports] = await connection.execute('SELECT * FROM schedule_reports ORDER BY created_at DESC');
+        res.json(reports);
     } catch (error) {
         res.status(500).json({ error: error.message });
     } finally {
         if (connection) await connection.end();
     }
 });
+
+
 
 const PORT = process.env.PORT || 8011;
 app.listen(PORT, () => {
-    console.log(`Calendar Service running on port ${PORT}`);
+    console.log(`Calendar Service running on port ${PORT} with dedicated DB`);
 });

@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, UploadFile, File, Form
+from fastapi import FastAPI, Depends, UploadFile, File, Form, Header
+from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 import os
@@ -28,6 +29,7 @@ POST_SERVICE_URL = os.getenv("POST_SERVICE_URL", "http://post-service:8012")
 FEED_SERVICE_URL = os.getenv("FEED_SERVICE_URL", "http://feed-service:8013")
 CALENDAR_SERVICE_URL = os.getenv("CALENDAR_SERVICE_URL", "http://calendar-service:8011")
 ACADEMIC_SERVICE_URL = os.getenv("ACADEMIC_SERVICE_URL", "http://academic-service:3001")
+TICKET_SERVICE_URL = os.getenv("TICKET_SERVICE_URL", "http://ticket-service:8016")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -247,6 +249,44 @@ async def request_call(data: dict):
 async def login(data: dict):
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{AUTH_SERVICE_URL}/login", json=data)
+        return response.json()
+
+@app.post("/tickets")
+async def create_ticket(data: dict, authorization: Optional[str] = Header(None)):
+    async with httpx.AsyncClient() as client:
+        headers = {"Authorization": authorization} if authorization else {}
+        response = await client.post(f"{TICKET_SERVICE_URL}/tickets", json=data, headers=headers)
+        return response.json()
+
+@app.get("/tickets")
+async def get_tickets(status: str = None, team: str = None, authorization: Optional[str] = Header(None)):
+    async with httpx.AsyncClient() as client:
+        params = {}
+        if status: params["status"] = status
+        if team: params["team"] = team
+        headers = {"Authorization": authorization} if authorization else {}
+        response = await client.get(f"{TICKET_SERVICE_URL}/tickets", params=params, headers=headers)
+        return response.json()
+
+@app.get("/tickets/stats")
+async def get_ticket_stats(authorization: Optional[str] = Header(None)):
+    async with httpx.AsyncClient() as client:
+        headers = {"Authorization": authorization} if authorization else {}
+        response = await client.get(f"{TICKET_SERVICE_URL}/tickets/stats", headers=headers)
+        return response.json()
+
+@app.get("/staff/teams")
+async def get_staff_teams(authorization: Optional[str] = Header(None)):
+    async with httpx.AsyncClient() as client:
+        headers = {"Authorization": authorization} if authorization else {}
+        response = await client.get(f"{TICKET_SERVICE_URL}/staff/teams", headers=headers)
+        return response.json()
+
+@app.patch("/tickets/{ticket_id}")
+async def update_ticket(ticket_id: int, data: dict, authorization: Optional[str] = Header(None)):
+    async with httpx.AsyncClient() as client:
+        headers = {"Authorization": authorization} if authorization else {}
+        response = await client.patch(f"{TICKET_SERVICE_URL}/tickets/{ticket_id}", json=data, headers=headers)
         return response.json()
 
 @app.post("/auth/register")

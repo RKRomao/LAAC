@@ -105,22 +105,25 @@ function checkLoginState() {
     if (token) {
         // Default to 'aluno' if role is missing but token is valid
         const currentRole = role || 'aluno';
-        const isAdmin = currentRole === 'admin' || currentRole?.startsWith('LAAC-staff');
+        const staffDashboardLink = (currentRole === 'admin' || currentRole.startsWith('LAAC-staff')) ? `
+            <a href="staff-dashboard.html" class="dropdown-item">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard Staff
+            </a>` : '';
+        const isAdmin = currentRole === 'admin';
         
         const adminLink = isAdmin ? `
             <a href="admin.html" class="dropdown-item">
                 <i class="fa-solid fa-gauge-high"></i> Painel Admin
+            </a>
+            <a href="staff-tickets.html" class="dropdown-item">
+                <i class="fa-solid fa-ticket"></i> Gestão de Tickets
             </a>` : '';
 
-        const profLink = (currentRole === 'professor' || currentRole === 'LAAC-staff-prof') ? `
-            <a href="prof/index.html" class="dropdown-item">
-                <i class="fa-solid fa-chalkboard-user"></i> Espaço Professor
-            </a>` : '';
         
         dropdown.innerHTML = `
             <a href="profile.html" class="dropdown-item"><i class="fa-solid fa-circle-user"></i> Perfil</a>
+            ${staffDashboardLink}
             ${adminLink}
-            ${profLink}
             <div class="dropdown-item"><i class="fa-solid fa-gear"></i> Definições</div>
             <hr style="opacity: 0.1; margin: 0.5rem 0;">
             <div class="dropdown-item logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</div>
@@ -423,6 +426,65 @@ async function pollNotifications() {
             });
         }
     } catch (e) { console.error("Polling error:", e); }
+}
+
+function selectReportType(type, element) {
+    document.getElementById('report-type').value = type;
+    document.querySelectorAll('.report-type-card').forEach(card => card.classList.remove('active'));
+    element.classList.add('active');
+}
+
+async function submitReport() {
+    const type = document.getElementById('report-type').value;
+    const title = document.getElementById('report-title').value.trim();
+    const description = document.getElementById('report-description').value.trim();
+    const btn = document.getElementById('btn-submit-report');
+
+    if (!title || !description) {
+        alert("Por favor preenche o título e a descrição.");
+        return;
+    }
+
+    const token = localStorage.getItem('laac_token');
+    const originalBtnText = btn.innerHTML;
+    
+    try {
+        btn.disabled = true;
+        btn.innerHTML = 'A enviar <span class="loading-dots"></span>';
+        
+        let url = '/api/tickets';
+        let bodyData = { type, title, description };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(bodyData)
+        });
+
+        if (response.ok) {
+            btn.innerHTML = 'Sucesso! <i class="fa-solid fa-check"></i>';
+            btn.style.background = '#22c55e';
+            
+            setTimeout(() => {
+                document.getElementById('report-title').value = '';
+                document.getElementById('report-description').value = '';
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+                btn.style.background = '';
+                alert("Report submetido com sucesso! Obrigado pela tua colaboração.");
+            }, 2000);
+        } else {
+            throw new Error('Falha na submissão');
+        }
+    } catch (error) {
+        console.error("Error submitting report:", error);
+        btn.disabled = false;
+        btn.innerHTML = originalBtnText;
+        alert("Erro ao submeter report. Verifica a tua ligação.");
+    }
 }
 
 // Start everything

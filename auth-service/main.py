@@ -13,7 +13,7 @@ app = FastAPI(title="LAAC Auth Service")
 # Security
 SECRET_KEY = os.getenv("SECRET_KEY", "laac-super-secret-key-2026")
 ALGORITHM = "HS256"
-LOGGING_SERVICE_URL = os.getenv("LOGGING_SERVICE_URL", "http://logging-service:8003")
+LOGGING_SERVICE_URL = os.getenv("LOGGING_SERVICE_URL", "http://logging-service:8000")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Database

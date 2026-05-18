@@ -1,0 +1,99 @@
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+.stat-box {
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.stat-box i {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    font-size: 5rem;
+    opacity: 0.05;
+}
+.stat-box h2 {
+    font-size: 3rem;
+    margin: 0.5rem 0;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.team-card {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.chart-container {
+    height: 250px;
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+}
+.bar {
+    flex: 1;
+    background: var(--primary);
+    border-radius: 4px 4px 0 0;
+    min-height: 5px;
+    position: relative;
+    transition: height 1s ease;
+}
+.bar:hover {
+    filter: brightness(1.2);
+}
+.bar-label {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    white-space: nowrap;
+    color: var(--text-muted);
+}
+
+/* Staff Tickets specific styles if any */
+.ticket-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+}
+
+.ticket-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+}
+
+.status-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.status-inprogress { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
+.status-resolved { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.status-closed { background: rgba(100, 116, 139, 0.2); color: #64748b; }
+
+.type-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-right: 1rem;
+}

@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LAAC - Linha de Apoio ao Caloiro</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-    
+
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 
     <!-- Navbar -->
@@ -50,8 +53,10 @@
                     <img src="assets/hero.png" alt="Welcome" class="slide-bg">
                     <div class="slide-content">
                         <h1>Bem-vindo à <br><span>LAAC UBI</span></h1>
-                        <p>O teu mentor digital para a vida académica na Covilhã. Orientação, suporte e comunidade num só lugar.</p>
-                        <button class="btn-emergency">Explorar Plataforma <i class="fa-solid fa-arrow-right"></i></button>
+                        <p>O teu mentor digital para a vida académica na Covilhã. Orientação, suporte e comunidade num
+                            só lugar.</p>
+                        <button class="btn-emergency">Explorar Plataforma <i
+                                class="fa-solid fa-arrow-right"></i></button>
                     </div>
                 </div>
                 <!-- News slides will be injected here -->
@@ -83,7 +88,7 @@
             <div class="map-info">
                 <h2>Explora o Campus</h2>
                 <p class="text-muted">Encontra os teus blocos, salas e serviços favoritos.</p>
-                
+
                 <div class="map-suggestions">
                     <div class="suggestion-card glass" onclick="focusMap(40.2778, -7.5089, 'Polo I (Principal)')">
                         <i class="fa-solid fa-building-columns"></i>
@@ -99,7 +104,8 @@
                             <p>Serviços Administrativos e Reitoria</p>
                         </div>
                     </div>
-                    <div class="suggestion-card glass" onclick="focusMap(40.2785, -7.5118, 'Cantina Principal (Engenharias)')">
+                    <div class="suggestion-card glass"
+                        onclick="focusMap(40.2785, -7.5118, 'Cantina Principal (Engenharias)')">
                         <i class="fa-solid fa-utensils"></i>
                         <div>
                             <h4>Cantina Principal</h4>
@@ -108,9 +114,10 @@
                     </div>
                 </div>
 
-                <button class="btn-secondary" style="margin-top: 2rem;" onclick="window.location.href='map.html'">Ver Mapa Completo <i class="fa-solid fa-map-location-dot"></i></button>
+                <button class="btn-secondary" style="margin-top: 2rem;" onclick="window.location.href='map.html'">Ver
+                    Mapa Completo <i class="fa-solid fa-map-location-dot"></i></button>
             </div>
-            
+
             <div class="map-preview-container glass">
                 <div id="map"></div>
             </div>
@@ -123,7 +130,7 @@
             <h2>Perguntas Frequentes (FAQ)</h2>
             <p class="text-muted">Tudo o que precisas de saber para começares bem na UBI.</p>
         </div>
-        
+
         <div class="faq-grid" id="faq-container">
             <!-- FAQ items will be injected here -->
         </div>
@@ -132,6 +139,75 @@
             <button class="btn-load-more" onclick="loadMoreFAQs()">
                 Ver mais questões <i class="fa-solid fa-chevron-down"></i>
             </button>
+        </div>
+    </section>
+
+    <!-- Report Issue Section -->
+    <section class="section" id="report">
+        <div class="section-header">
+            <h1>Painel de Report</h1>
+            <h2 class="text-muted">Encontraste um bug ou tens uma questão administrativa? Reporta aqui.</h2>
+        </div>
+
+        <div class="emergency-card glass"
+            style="flex-direction: column; align-items: stretch; gap: 2rem; padding: 3rem; margin: 0 auto;">
+            <div>
+                <label style="color: white; margin-bottom: 1.5rem; display: block; font-weight: 500; opacity: 0.8;">O
+                    que pretendes reportar?</label>
+                <div class="report-grid">
+                    <div class="report-type-card active" onclick="selectReportType('bug', this)">
+                        <i class="fa-solid fa-bug"></i>
+                        <span>Bug / Técnico</span>
+                    </div>
+                    <div class="report-type-card" onclick="selectReportType('schedule', this)">
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                        <span>Horário / Aula</span>
+                    </div>
+                    <div class="report-type-card" onclick="selectReportType('administrative', this)">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span>Administrativo</span>
+                    </div>
+                    <div class="report-type-card" onclick="selectReportType('suggestion', this)">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>Sugestão</span>
+                    </div>
+                    <div class="report-type-card" onclick="selectReportType('other', this)">
+                        <i class="fa-solid fa-ellipsis"></i>
+                        <span>Outro</span>
+                    </div>
+                </div>
+                <input type="hidden" id="report-type" value="bug">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                <div class="form-group">
+                    <label
+                        style="color: white; margin-bottom: 0.5rem; display: block; font-size: 0.9rem; opacity: 0.7;">Título
+                        do Report</label>
+                    <input type="text" id="report-title" class="auth-input"
+                        placeholder="Ex: Erro ao carregar mapa, Aula sobreposta..."
+                        style="background: rgba(255,255,255,0.05); color: white; border-color: rgba(255,255,255,0.1);">
+                </div>
+
+                <div class="form-group">
+                    <label
+                        style="color: white; margin-bottom: 0.5rem; display: block; font-size: 0.9rem; opacity: 0.7;">Descrição
+                        Detalhada</label>
+                    <textarea id="report-description" class="auth-input"
+                        style="height: 150px; resize: none; padding-top: 15px; background: rgba(255,255,255,0.05); color: white; border-color: rgba(255,255,255,0.1);"
+                        placeholder="Descreve o problema com o máximo de detalhe possível para nos ajudares a resolver..."></textarea>
+                </div>
+            </div>
+
+            <div class="report-footer"
+                style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; margin-top: 1rem;">
+                <p class="text-muted" style="font-size: 0.8rem;">O teu report será analisado pela equipa LAAC e
+                    respondido via e-mail ou sistema de tickets.</p>
+                <button id="btn-submit-report" class="btn-emergency"
+                    style="width: auto; padding: 1rem 2rem; border-radius: 14px;" onclick="submitReport()">
+                    Enviar Report <i class="fa-solid fa-paper-plane" style="margin-left: 0.5rem;"></i>
+                </button>
+            </div>
         </div>
     </section>
 
@@ -199,26 +275,29 @@
             <div class="msg bot">Olá! A ligar-te a um membro da equipa LAAC...</div>
         </div>
         <div class="chat-footer">
-            <input type="text" class="chat-input" placeholder="Escreve a tua mensagem..." onkeydown="if(event.key === 'Enter') sendChatMessage()">
+            <input type="text" class="chat-input" placeholder="Escreve a tua mensagem..."
+                onkeydown="if(event.key === 'Enter') sendChatMessage()">
             <button class="nav-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 
     <!-- Profile Modal -->
-    <div class="chat-overlay glass" id="profile-modal" style="width: 500px; height: auto; max-height: 80vh; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; padding: 2rem;">
+    <div class="chat-overlay glass" id="profile-modal"
+        style="width: 500px; height: auto; max-height: 80vh; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; padding: 2rem;">
         <div class="chat-header" style="margin-bottom: 2rem;">
             <h3>O Meu Perfil</h3>
             <button class="nav-btn" onclick="toggleProfile()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div style="display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; padding-right: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                <img id="profile-avatar-preview" src="https://ui-avatars.com/api/?name=User" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary);">
+                <img id="profile-avatar-preview" src="https://ui-avatars.com/api/?name=User"
+                    style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary);">
                 <div style="flex: 1;">
                     <label class="text-muted" style="font-size: 0.8rem;">E-mail (Não editável)</label>
                     <input type="text" id="profile-email" class="auth-input" readonly style="opacity: 0.6;">
                 </div>
             </div>
-            
+
             <div class="form-group">
                 <label>Nome de Exibição</label>
                 <input type="text" id="profile-name" class="auth-input" placeholder="O teu nome...">
@@ -236,13 +315,15 @@
                 </div>
                 <div class="form-group">
                     <label>Avatar URL</label>
-                    <input type="text" id="profile-avatar-url" class="auth-input" placeholder="URL da imagem..." onchange="document.getElementById('profile-avatar-preview').src = this.value">
+                    <input type="text" id="profile-avatar-url" class="auth-input" placeholder="URL da imagem..."
+                        onchange="document.getElementById('profile-avatar-preview').src = this.value">
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Biografia</label>
-                <textarea id="profile-bio" class="auth-input" style="height: 100px; resize: none; padding-top: 10px;" placeholder="Conta-nos um pouco sobre ti..."></textarea>
+                <textarea id="profile-bio" class="auth-input" style="height: 100px; resize: none; padding-top: 10px;"
+                    placeholder="Conta-nos um pouco sobre ti..."></textarea>
             </div>
 
             <button class="btn-auth" style="margin-top: 1rem;" onclick="saveProfile()">
@@ -253,7 +334,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="script.js"></script>
 </body>
+
 </html>

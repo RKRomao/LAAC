@@ -3,5 +3,7 @@ uvicorn==0.27.1
 sqlalchemy==2.0.27
 mysqlclient==2.2.4
 python-dotenv==1.0.1
-httpx
+httpx==0.27.0
+cbor2>=5.9.0
 python-multipart
+pytest
