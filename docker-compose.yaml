@@ -192,6 +192,7 @@ services:
       - DB_PASS=laac_pass
       - DB_NAME=laac_calendar_db
       - ACADEMIC_SERVICE_URL=http://academic-service:3001
+      - TICKET_SERVICE_URL=http://ticket-service:8016
     # ports:
     #   - "8011:8011"
     depends_on:

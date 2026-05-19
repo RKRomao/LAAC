@@ -82,7 +82,8 @@ def require_staff(user = Depends(get_current_user)):
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
     role = user.get("role", "")
-    if role != "admin" and not role.startswith("LAAC-staff"):
+    allowed_roles = ["admin", "Gestor", "Responsável"]
+    if role not in allowed_roles and not role.startswith("LAAC-staff"):
         raise HTTPException(status_code=403, detail="Staff access required")
     return user
 

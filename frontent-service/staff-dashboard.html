@@ -81,22 +81,25 @@
                 const response = await fetch('/api/tickets/stats', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (!response.ok) {
+                    throw new Error(`Failed to load stats: ${response.statusText}`);
+                }
                 const stats = await response.json();
 
                 // Total Pending
-                const pending = stats.status.find(s => s.status === 'Pending')?.count || 0;
-                const inProgress = stats.status.find(s => s.status === 'In Progress')?.count || 0;
+                const pending = stats.status?.find(s => s.status === 'Pending')?.count || 0;
+                const inProgress = stats.status?.find(s => s.status === 'In Progress')?.count || 0;
                 document.getElementById('total-pending').innerText = pending + inProgress;
 
                 // Total Resolved
-                const resolved = stats.status.find(s => s.status === 'Resolved')?.count || 0;
+                const resolved = stats.status?.find(s => s.status === 'Resolved')?.count || 0;
                 document.getElementById('total-resolved').innerText = resolved;
 
                 // Team Chart
                 const chart = document.getElementById('team-chart');
-                const maxTickets = Math.max(...stats.teams.map(t => t.count), 1);
+                const maxTickets = stats.teams ? Math.max(...stats.teams.map(t => t.count), 1) : 1;
                 
-                chart.innerHTML = stats.teams.map(t => {
+                chart.innerHTML = (stats.teams || []).map(t => {
                     const height = (t.count / maxTickets) * 200;
                     return `
                         <div class="bar" style="height: ${height}px">
@@ -111,10 +114,13 @@
                 const teamsResponse = await fetch('/api/staff/teams', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (!teamsResponse.ok) {
+                    throw new Error(`Failed to load teams: ${teamsResponse.statusText}`);
+                }
                 const teams = await teamsResponse.json();
 
-                teamsList.innerHTML = teams.map(teamName => {
-                    const teamStats = stats.teams.find(t => t.assigned_team === teamName) || { count: 0 };
+                teamsList.innerHTML = (teams || []).map(teamName => {
+                    const teamStats = (stats.teams || []).find(t => t.assigned_team === teamName) || { count: 0 };
                     const isBusy = teamStats.count > 5;
                     return `
                         <div class="team-card glass">

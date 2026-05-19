@@ -44,92 +44,57 @@ async function getSubjectNames(subjectIds) {
     }
 }
 
+const TICKET_SERVICE_URL = process.env.TICKET_SERVICE_URL || 'http://ticket-service:8016';
+
 app.get('/calendar/:academic_year', async (req, res) => {
     let { academic_year } = req.params;
     academic_year = decodeURIComponent(academic_year);
-    let connection;
-
+    // academic_year is often in format "2025" or "2025-2026"
+    // For now we will fetch all tickets and return the ones matching the year, or just all tickets grouped.
+    
     try {
-        connection = await getDbConnection();
-
-        // 1. Get semesters for this academic year
-        let [semesters] = await connection.execute(
-            'SELECT * FROM semesters WHERE academic_year = ? ORDER BY semester_number',
-            [academic_year]
-        );
-
-        // Fallback: If no semesters in DB, use default academic dates
-        if (semesters.length === 0) {
-            console.log(`DEBUG: No data for ${academic_year}, using fallback defaults.`);
-            semesters = [
-                { semester_number: 1, start_date: '2025-09-15', end_date: '2026-01-31' },
-                { semester_number: 2, start_date: '2026-02-16', end_date: '2026-06-30' }
-            ];
-        }
-
-        // 2. Get all classes
-        const [classes] = await connection.execute('SELECT * FROM classes');
-        
-        // 3. Fetch subject names from academic service
-        const subjectIds = [...new Set(classes.map(c => c.subject_id))];
-        const subjectMap = await getSubjectNames(subjectIds);
+        // Fetch tickets from the ticket service (acting as reports)
+        const response = await axios.get(`${TICKET_SERVICE_URL}/tickets`);
+        const tickets = response.data;
 
         const result = {};
 
-        for (const semester of semesters) {
-            const semKey = `Semestre ${semester.semester_number}`;
-            result[semKey] = {};
+        tickets.forEach(ticket => {
+            const date = moment(ticket.created_at);
+            const monthName = date.format('MMMM');
+            const day = date.date();
+            const year = date.year();
+            
+            const yearKey = `Ano ${year}`;
 
-            const startDate = moment(semester.start_date).format('YYYY-MM-DD');
-            const endDate = moment(semester.end_date).format('YYYY-MM-DD');
-
-            if (classes.length === 0) {
-                const firstMonth = moment(startDate).format('MMMM');
-                result[semKey][firstMonth] = {};
+            if (!result[yearKey]) {
+                result[yearKey] = {};
             }
 
-            for (const cls of classes) {
-                const dates = classDates.generate({
-                    format: 'YYYY-MM-DD',
-                    start: startDate,
-                    end: endDate,
-                    weekday: cls.weekday,
-                    breaks: []
-                });
-
-                if (dates && dates.length > 0) {
-                    dates.forEach(date => {
-                        const monthName = date.format('MMMM');
-                        const day = date.date();
-                        const dateStr = date.format('YYYY-MM-DD');
-
-                        if (!result[semKey][monthName]) {
-                            result[semKey][monthName] = {};
-                        }
-
-                        if (!result[semKey][monthName][day]) {
-                            result[semKey][monthName][day] = [];
-                        }
-
-                        result[semKey][monthName][day].push({
-                            subject: subjectMap[cls.subject_id] || `Subject ${cls.subject_id}`,
-                            type: cls.type,
-                            start_time: cls.start_time,
-                            end_time: cls.end_time,
-                            location_id: cls.location_id,
-                            full_date: dateStr
-                        });
-                    });
-                }
+            if (!result[yearKey][monthName]) {
+                result[yearKey][monthName] = {};
             }
-        }
+
+            if (!result[yearKey][monthName][day]) {
+                result[yearKey][monthName][day] = [];
+            }
+
+            // We indicate the error report in the calendar
+            result[yearKey][monthName][day].push({
+                id: ticket.id,
+                title: ticket.title,
+                type: ticket.type,
+                status: ticket.status,
+                description: ticket.description,
+                assigned_team: ticket.assigned_team,
+                full_date: date.format('YYYY-MM-DD HH:mm:ss')
+            });
+        });
 
         res.json(result);
     } catch (error) {
-        console.error('Calendar Error:', error);
-        res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
-    } finally {
-        if (connection) await connection.end();
+        console.error('Calendar Reports Error:', error.message);
+        res.status(500).json({ error: 'Erro ao carregar tickets para o calendário', details: error.message });
     }
 });
 
