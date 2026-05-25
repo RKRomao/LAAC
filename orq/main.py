@@ -162,6 +162,13 @@ async def get_academic_calendar(academic_year: str):
         response = await client.get(f"{CALENDAR_SERVICE_URL}/calendar/{academic_year}")
         return response.json()
 
+@app.post("/calendar/reports/schedule")
+async def report_schedule_problem(data: dict, authorization: Optional[str] = Header(None)):
+    async with httpx.AsyncClient() as client:
+        headers = {"Authorization": authorization} if authorization else {}
+        response = await client.post(f"{CALENDAR_SERVICE_URL}/reports/schedule", json=data, headers=headers)
+        return response.json()
+
 @app.get("/courses")
 async def get_courses(study_cycle: str = None):
     async with httpx.AsyncClient() as client:
@@ -172,30 +179,13 @@ async def get_courses(study_cycle: str = None):
         return response.json()
 
 @app.get("/subjects")
-async def get_subjects(course_id: int = None, curricular_year: int = None, professor_id: int = None):
+async def get_subjects(course_id: int = None, curricular_year: int = None):
     async with httpx.AsyncClient() as client:
         params = {}
         if course_id: params["course_id"] = course_id
         if curricular_year: params["curricular_year"] = curricular_year
-        if professor_id: params["professor_id"] = professor_id
         response = await client.get(f"{ACADEMIC_SERVICE_URL}/subjects", params=params)
         return response.json()
-
-@app.get("/professors")
-async def get_professors(user_id: int = None):
-    print(f"DEBUG: Orq received request for /professors?user_id={user_id}")
-    async with httpx.AsyncClient() as client:
-        params = {}
-        if user_id: params["user_id"] = user_id
-        try:
-            url = f"{ACADEMIC_SERVICE_URL}/professors"
-            print(f"DEBUG: Orq calling academic-service at {url} with params {params}")
-            response = await client.get(url, params=params)
-            print(f"DEBUG: Academic-service returned {response.status_code}")
-            return response.json()
-        except Exception as e:
-            print(f"DEBUG: Error calling academic-service: {str(e)}")
-            raise HTTPException(status_code=502, detail=f"Academic service error: {str(e)}")
 
 @app.get("/classes")
 async def get_classes(course_id: int = None, curricular_year: int = None):
@@ -355,6 +345,25 @@ async def serve_upload(filename: str):
 async def get_feed():
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{FEED_SERVICE_URL}/feed")
+        return response.json()
+
+# Roles & Permissions
+@app.get("/roles")
+async def get_roles():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{AUTH_SERVICE_URL}/roles")
+        return response.json()
+
+@app.put("/roles/{role_name}")
+async def update_role(role_name: str, payload: dict):
+    async with httpx.AsyncClient() as client:
+        response = await client.put(f"{AUTH_SERVICE_URL}/roles/{role_name}", json=payload)
+        return response.json()
+
+@app.post("/roles")
+async def create_role(payload: dict):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{AUTH_SERVICE_URL}/roles", json=payload)
         return response.json()
 
 @app.post("/posts/{post_id}/like")

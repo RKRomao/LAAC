@@ -142,35 +142,34 @@ app.get('/classes', async (req, res) => {
 });
 
 
-// Endpoint to report schedule problems
+// Endpoint to report schedule problems (forwards to ticket-service)
 app.post('/reports/schedule', async (req, res) => {
-    const { user_id, class_id, subject_name, description } = req.body;
-    let connection;
-    try {
-        connection = await getDbConnection();
-        await connection.execute(
-            'INSERT INTO schedule_reports (user_id, class_id, subject_name, description) VALUES (?, ?, ?, ?)',
-            [user_id || 0, class_id || null, subject_name || null, description]
-        );
-        res.status(201).json({ message: 'Problema reportado com sucesso' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    } finally {
-        if (connection) await connection.end();
-    }
-});
+    const { user_id, class_id, subject_name, description, academic_year } = req.body;
+    const authorization = req.headers['authorization'];
 
-// Endpoint to view reports (for staff)
-app.get('/reports/schedule', async (req, res) => {
-    let connection;
     try {
-        connection = await getDbConnection();
-        const [reports] = await connection.execute('SELECT * FROM schedule_reports ORDER BY created_at DESC');
-        res.json(reports);
+        // Create a ticket in the ticket-service
+        const ticketData = {
+            type: 'schedule',
+            title: `Problema no Calendário: ${subject_name || 'Aula'}`,
+            description: `Class ID: ${class_id || 'N/A'}\nAno Académico: ${academic_year || 'N/A'}\n\nDescrição do utilizador: ${description}`,
+            assigned_team: 'Academic'
+        };
+
+        const response = await axios.post(`${TICKET_SERVICE_URL}/tickets`, ticketData, {
+            headers: { 'Authorization': authorization }
+        });
+
+        res.status(201).json({ 
+            message: 'Problema no calendário reportado como ticket', 
+            ticket_id: response.data.id 
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
-    } finally {
-        if (connection) await connection.end();
+        console.error('Error forwarding schedule report:', error.message);
+        res.status(error.response?.status || 500).json({ 
+            error: 'Erro ao criar ticket de calendário', 
+            details: error.response?.data?.detail || error.message 
+        });
     }
 });
 

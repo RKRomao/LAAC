@@ -44,20 +44,12 @@ app.get('/courses', async (req, res) => {
 
 // GET /subjects
 app.get('/subjects', async (req, res) => {
-    const { course_id, curricular_year, professor_id } = req.query;
+    const { course_id, curricular_year } = req.query;
     let connection;
     try {
         connection = await getDbConnection();
-        let query = 'SELECT s.* FROM subjects s';
-        if (professor_id) {
-            query += ' JOIN professor_subjects ps ON s.id = ps.subject_id';
-        }
-        query += ' WHERE 1=1';
+        let query = 'SELECT s.* FROM subjects s WHERE 1=1';
         let params = [];
-        if (professor_id) {
-            query += ' AND ps.professor_id = ?';
-            params.push(professor_id);
-        }
         if (course_id) {
             query += ' AND s.course_id = ?';
             params.push(course_id);
@@ -70,28 +62,6 @@ app.get('/subjects', async (req, res) => {
         console.log(`DEBUG: Subjects Query: ${query} with params:`, params);
         const [subjects] = await connection.execute(query, params);
         res.json(subjects);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    } finally {
-        if (connection) await connection.end();
-    }
-});
-
-// GET /professors
-app.get('/professors', async (req, res) => {
-    const { user_id } = req.query;
-    console.log(`DEBUG: Academic Service received request for /professors?user_id=${user_id}`);
-    let connection;
-    try {
-        connection = await getDbConnection();
-        let query = 'SELECT * FROM professors';
-        let params = [];
-        if (user_id) {
-            query += ' WHERE user_id = ?';
-            params.push(user_id);
-        }
-        const [rows] = await connection.execute(query, params);
-        res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     } finally {

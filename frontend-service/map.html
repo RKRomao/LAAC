@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Mapa e Itinerários</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="map.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar scrolled">
+        <div class="logo">LAAC <span>Mapa</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#noticias">Notícias</a></li>
+            <li><a href="#" class="active">Mapa</a></li>
+            <li><a href="social.html">Social</a></li>
+            <li><a href="report.html">Suporte</a></li>
+        </ul>
+        <div class="user-action">
+            <button class="nav-btn"><i class="fa-solid fa-house"></i></button>
+        </div>
+    </nav>
+
+    <div class="map-page-container">
+        <div class="map-sidebar">
+            <div class="search-box">
+                <h3>Planeia a tua rota</h3>
+                
+                <div class="input-group">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <input type="text" class="map-input" value="A minha localização" readonly>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <input type="text" id="dest-input" class="map-input" placeholder="Para onde queres ir?" oninput="searchLocations()">
+                </div>
+
+                <div class="time-selector" style="margin-top: 0.5rem;">
+                    <a href="#" id="plan-toggle" style="font-size: 0.8rem; color: var(--primary); text-decoration: none;" onclick="toggleTimeInput(event)">
+                        <i class="fa-solid fa-clock"></i> Planear saída (agora)
+                    </a>
+                    <div id="time-input-container" style="display: none; margin-top: 0.5rem;">
+                        <input type="time" id="departure-time" class="map-input" style="padding-left: 1rem;">
+                    </div>
+                </div>
+
+                <div id="search-results" class="results-list"></div>
+            </div>
+
+            <div id="route-panel" class="route-info">
+                <h4>Itinerário Sugerido</h4>
+                <p id="route-meta" class="text-muted" style="font-size: 0.8rem; margin-bottom: 1rem;"></p>
+                <div id="instructions"></div>
+                <button class="btn-emergency" style="width: 100%; margin-top: 1rem;" onclick="clearRoute()">Limpar Rota</button>
+            </div>
+        </div>
+
+        <div id="map-full"></div>
+    </div>
+
+    <footer>
+        <div class="logo">LAAC</div>
+        <div class="footer-links">
+            <a href="#">Privacidade</a>
+            <a href="#">Termos</a>
+            <a href="report.html" class="btn-report-bug"><i class="fa-solid fa-bug"></i> Reportar Problema</a>
+        </div>
+        <p class="text-muted">&copy; 2026 LAAC UBI. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+    <script src="map.js"></script>
+</body>
+</html>

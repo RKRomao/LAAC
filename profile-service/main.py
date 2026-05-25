@@ -53,7 +53,13 @@ async def get_profile(email: str, db: Session = Depends(get_db)):
     
     user_id = user[0]
     
-    result = db.execute(text("SELECT * FROM user_profiles WHERE email = :e"), {"e": email}).fetchone()
+    # Query with explicit columns to avoid index issues
+    query = text("""
+        SELECT email, display_name, bio, avatar_url, course, year, social_links, banner_url, privacy_settings 
+        FROM user_profiles 
+        WHERE email = :e
+    """)
+    result = db.execute(query, {"e": email}).fetchone()
     
     # Get organizations
     orgs_result = db.execute(text("""
@@ -80,6 +86,7 @@ async def get_profile(email: str, db: Session = Depends(get_db)):
             "organizations": organizations
         }
     
+    # Map row to dictionary using column names (SQLAlchemy rows support ._mapping or named access)
     return {
         "id": user_id,
         "email": result[0],
@@ -89,8 +96,8 @@ async def get_profile(email: str, db: Session = Depends(get_db)):
         "course": result[4],
         "year": result[5],
         "social_links": json.loads(result[6]) if result[6] else {},
-        "banner_url": result[7] if len(result) > 7 else None,
-        "privacy_settings": json.loads(result[8]) if len(result) > 8 and result[8] else {"show_email": True, "show_course": True, "show_orgs": True},
+        "banner_url": result[7],
+        "privacy_settings": json.loads(result[8]) if result[8] else {"show_email": True, "show_course": True, "show_orgs": True},
         "organizations": organizations
     }
 

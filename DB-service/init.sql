@@ -10,6 +10,28 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE user_profiles (
+  email VARCHAR(255) PRIMARY KEY,
+  display_name VARCHAR(255),
+  bio TEXT,
+  avatar_url VARCHAR(255),
+  course VARCHAR(255),
+  year INT DEFAULT 1,
+  social_links TEXT,
+  banner_url VARCHAR(255),
+  privacy_settings TEXT,
+  FOREIGN KEY (email) REFERENCES users(email)
+);
+
+CREATE TABLE user_follows (
+  follower_id INT,
+  followed_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (follower_id, followed_id),
+  FOREIGN KEY (follower_id) REFERENCES users(id),
+  FOREIGN KEY (followed_id) REFERENCES users(id)
+);
+
 CREATE TABLE students (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNIQUE NOT NULL,
@@ -25,15 +47,6 @@ CREATE TABLE locations (
   room_code VARCHAR(50) UNIQUE,
   description VARCHAR(255),
   geojson TEXT
-);
-
-CREATE TABLE professors (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT UNIQUE NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  location_id INT,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (location_id) REFERENCES locations(id)
 );
 
 CREATE TABLE laac_staff (
@@ -161,16 +174,10 @@ CREATE TABLE courses (
 CREATE TABLE subjects (
   id INT AUTO_INCREMENT PRIMARY KEY,
   course_id INT,
-  professor_id INT,
   name VARCHAR(255),
   code VARCHAR(50),
-  FOREIGN KEY (course_id) REFERENCES courses(id),
-  FOREIGN KEY (professor_id) REFERENCES professors(id)
+  FOREIGN KEY (course_id) REFERENCES courses(id)
 );
-
--- --- SEMESTERS are in CALENDAR SERVICE ---
-
--- --- CLASS LOGISTICS are in CALENDAR SERVICE ---
 
 -- --- ENROLLMENTS ---
 
@@ -243,3 +250,16 @@ CREATE TABLE tickets (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE roles (
+    role_name VARCHAR(50) PRIMARY KEY,
+    description TEXT,
+    permissions JSON -- Array de strings ex: ["view_admin", "manage_users", "manage_reports"]
+);
+
+INSERT INTO roles (role_name, description, permissions) VALUES 
+('admin', 'Administrador total do sistema', '["view_admin", "manage_users", "manage_permissions", "manage_reports"]'),
+('LAAC-staff:Dev-team', 'Equipa de desenvolvimento', '["view_admin", "manage_reports"]'),
+('LAAC-staff:Response-team', 'Equipa de resposta a emergências', '["view_admin", "manage_emergencies"]'),
+('aluno', 'Estudante UBI', '[]'),
+('funcionarios-ubi', 'Funcionários da universidade', '[]');

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Linha de Apoio ao Caloiro</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="logo">LAAC <span>Platform</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="index.html#noticias">Notícias</a></li>
+            <li><a href="map.html">Mapa</a></li>
+            <li><a href="social.html">Social</a></li>
+            <li><a href="report.html">Suporte</a></li>
+        </ul>
+        <div class="user-action">
+            <button class="nav-btn" onclick="toggleUserDropdown()"><i class="fa-solid fa-user"></i></button>
+            <div class="user-dropdown glass" id="user-dropdown">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero / News Carousel -->
+    <section class="hero" id="noticias">
+        <div class="swiper mySwiper carousel-container">
+            <div class="swiper-wrapper" id="news-wrapper">
+                <!-- Welcome Slide -->
+                <div class="swiper-slide carousel-slide">
+                    <img src="assets/hero.png" alt="Welcome" class="slide-bg">
+                    <div class="slide-content">
+                        <h1>Bem-vindo à <br><span>LAAC UBI</span></h1>
+                        <p>O teu mentor digital para a vida académica na Covilhã. Orientação, suporte e comunidade num
+                            só lugar.</p>
+                        <button class="btn-emergency">Explorar Plataforma <i
+                                class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+                <!-- News slides will be injected here -->
+            </div>
+            <!-- Carousel Nav -->
+            <div class="carousel-nav">
+                <div class="swiper-button-prev nav-btn"><i class="fa-solid fa-chevron-left"></i></div>
+                <div class="swiper-button-next nav-btn"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Emergency Section -->
+    <section class="section" id="emergencia">
+        <div class="emergency-card glass">
+            <div class="emergency-info">
+                <h2>Precisa de ajuda imediata?</h2>
+                <p>A nossa equipa está disponível para te apoiar em qualquer situação.</p>
+            </div>
+            <button class="btn-emergency" onclick="toggleChat()">
+                <i class="fa-solid fa-truck-medical"></i> Botão de Emergência
+            </button>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="section" id="mapa">
+        <div class="map-grid">
+            <div class="map-info">
+                <h2>Explora o Campus</h2>
+                <p class="text-muted">Encontra os teus blocos, salas e serviços favoritos.</p>
+
+                <div class="map-suggestions">
+                    <div class="suggestion-card glass" onclick="focusMap(40.2778, -7.5089, 'Polo I (Principal)')">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <div>
+                            <h4>Polo I (Principal)</h4>
+                            <p>Biblioteca Central e Serviços Sociais</p>
+                        </div>
+                    </div>
+                    <div class="suggestion-card glass" onclick="focusMap(40.2744, -7.5079, 'Reitoria da UBI')">
+                        <i class="fa-solid fa-landmark"></i>
+                        <div>
+                            <h4>Reitoria</h4>
+                            <p>Serviços Administrativos e Reitoria</p>
+                        </div>
+                    </div>
+                    <div class="suggestion-card glass"
+                        onclick="focusMap(40.2785, -7.5118, 'Cantina Principal (Engenharias)')">
+                        <i class="fa-solid fa-utensils"></i>
+                        <div>
+                            <h4>Cantina Principal</h4>
+                            <p>Cantina das Engenharias (Polo II)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-secondary" style="margin-top: 2rem;" onclick="window.location.href='map.html'">Ver
+                    Mapa Completo <i class="fa-solid fa-map-location-dot"></i></button>
+            </div>
+
+            <div class="map-preview-container glass">
+                <div id="map"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support Hub Quick Access -->
+    <section class="section" id="service-reports">
+        <div class="emergency-card glass" style="justify-content: space-between; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(255, 255, 255, 0.05)); border: 1px solid rgba(99, 102, 241, 0.2);">
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <div class="sos-icon" style="background: var(--primary); box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);"><i class="fa-solid fa-headset"></i></div>
+                <div>
+                    <h2 style="margin-bottom: 0.5rem;">Centro de Suporte</h2>
+                    <p class="text-muted" style="max-width: 500px;">Problemas com o horário, erros na plataforma ou dúvidas académicas? Estamos aqui para resolver.</p>
+                </div>
+            </div>
+            <button class="btn-emergency" onclick="window.location.href='report.html'" style="width: auto; padding: 1rem 2.5rem; border-radius: 16px;">
+                Obter Ajuda <i class="fa-solid fa-arrow-right" style="margin-left: 0.5rem;"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section" id="faq">
+        <div class="section-header">
+            <h2>Perguntas Frequentes (FAQ)</h2>
+            <p class="text-muted">Tudo o que precisas de saber para começares bem na UBI.</p>
+        </div>
+
+        <div class="faq-grid" id="faq-container">
+            <!-- FAQ items will be injected here -->
+        </div>
+
+        <div class="faq-actions" id="faq-load-more-container">
+            <button class="btn-load-more" onclick="loadMoreFAQs()">
+                Ver mais questões <i class="fa-solid fa-chevron-down"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Future Sections Placeholders -->
+    <section class="section">
+        <div class="placeholder-grid">
+            <div class="placeholder-card glass">
+                <i class="fa-solid fa-calendar-days fa-2x"></i>
+                <p>Calendário em breve</p>
+            </div>
+            <div class="placeholder-card glass">
+                <i class="fa-solid fa-graduation-cap fa-2x"></i>
+                <p>Guias de Estudo em breve</p>
+            </div>
+            <div class="placeholder-card glass">
+                <i class="fa-solid fa-users-viewfinder fa-2x"></i>
+                <p>Comunidade em breve</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="logo">LAAC</div>
+        <div class="footer-links">
+            <a href="#">Privacidade</a>
+            <a href="#">Termos</a>
+            <a href="report.html" class="btn-report-bug"><i class="fa-solid fa-bug"></i> Reportar Problema</a>
+        </div>
+        <p class="text-muted">&copy; 2026 LAAC UBI. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Floating SOS Button -->
+    <div class="sos-container">
+        <div class="sos-menu glass" id="sos-menu">
+            <button class="sos-option silent" onclick="sendEmergency('silent')">
+                <i class="fa-solid fa-ghost"></i> Alerta Silencioso
+                <span>Localização enviada sem som</span>
+            </button>
+            <button class="sos-option call" onclick="sendEmergency('call')">
+                <i class="fa-solid fa-phone"></i> Chamada Emergência
+                <span>Ligar para a Segurança</span>
+            </button>
+            <button class="sos-option chat" onclick="toggleChat()">
+                <i class="fa-solid fa-message"></i> Chat Suporte
+                <span>Falar com equipa LAAC</span>
+            </button>
+        </div>
+        <button class="btn-sos" id="btn-sos" onclick="toggleSOS()">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>SOS</span>
+        </button>
+    </div>
+
+    <!-- Emergency Chat Overlay -->
+    <div class="chat-overlay glass" id="chat-overlay">
+        <div class="chat-header">
+            <h3>Suporte LAAC</h3>
+            <div class="chat-actions">
+                <button class="nav-btn" onclick="makeCall()"><i class="fa-solid fa-phone"></i></button>
+                <button class="nav-btn" onclick="toggleChat()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="chat-body" id="chat-messages">
+            <div class="msg bot">Olá! A ligar-te a um membro da equipa LAAC...</div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" class="chat-input" placeholder="Escreve a tua mensagem..."
+                onkeydown="if(event.key === 'Enter') sendChatMessage()">
+            <button class="nav-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="chat-overlay glass" id="profile-modal"
+        style="width: 500px; height: auto; max-height: 80vh; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; padding: 2rem;">
+        <div class="chat-header" style="margin-bottom: 2rem;">
+            <h3>O Meu Perfil</h3>
+            <button class="nav-btn" onclick="toggleProfile()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; padding-right: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <img id="profile-avatar-preview" src="https://ui-avatars.com/api/?name=User"
+                    style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary);">
+                <div style="flex: 1;">
+                    <label class="text-muted" style="font-size: 0.8rem;">E-mail (Não editável)</label>
+                    <input type="text" id="profile-email" class="auth-input" readonly style="opacity: 0.6;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nome de Exibição</label>
+                <input type="text" id="profile-name" class="auth-input" placeholder="O teu nome...">
+            </div>
+
+            <div class="form-group">
+                <label>Curso Académico</label>
+                <input type="text" id="profile-course" class="auth-input" placeholder="Ex: Engenharia Informática">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Ano</label>
+                    <input type="number" id="profile-year" class="auth-input" min="1" max="6">
+                </div>
+                <div class="form-group">
+                    <label>Avatar URL</label>
+                    <input type="text" id="profile-avatar-url" class="auth-input" placeholder="URL da imagem..."
+                        onchange="document.getElementById('profile-avatar-preview').src = this.value">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Biografia</label>
+                <textarea id="profile-bio" class="auth-input" style="height: 100px; resize: none; padding-top: 10px;"
+                    placeholder="Conta-nos um pouco sobre ti..."></textarea>
+            </div>
+
+            <button class="btn-auth" style="margin-top: 1rem;" onclick="saveProfile()">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Alterações
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

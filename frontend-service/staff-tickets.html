@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC Staff - Gestão de Tickets</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="staff.css">
+</head>
+<body>
+
+    <nav class="navbar scrolled">
+        <div class="logo">LAAC <span>Staff</span></div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="staff-dashboard.html">Dashboard</a></li>
+            <li><a href="staff-tickets.html" class="active">Tickets</a></li>
+            <li><a href="report.html">Suporte</a></li>
+            <li><a href="admin.html">Admin</a></li>
+        </ul>
+        <div class="user-action">
+            <button class="nav-btn" onclick="window.location.href='index.html'"><i class="fa-solid fa-house"></i></button>
+        </div>
+    </nav>
+
+    <div class="tickets-container" style="margin-top: 100px;">
+        <div class="section-header">
+            <h1>Gestão de Suporte & Reports</h1>
+            <p class="text-muted">Gere os problemas reportados pelos utilizadores e questões administrativas.</p>
+        </div>
+
+        <div class="filter-bar glass" style="margin-bottom: 2rem; padding: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <i class="fa-solid fa-filter"></i>
+            <select id="status-filter" class="auth-input" style="width: 180px; margin-bottom: 0;" onchange="loadTickets()">
+                <option value="">Todos os Estados</option>
+                <option value="Pending">Pendente</option>
+                <option value="In Progress">Em Progresso</option>
+                <option value="Resolved">Resolvido</option>
+                <option value="Closed">Fechado</option>
+            </select>
+            <select id="team-filter" class="auth-input" style="width: 180px; margin-bottom: 0;" onchange="loadTickets()">
+                <option value="">Todas as Equipas</option>
+                <!-- Teams will be loaded here -->
+            </select>
+            <button class="btn-emergency" style="width: auto; padding: 0.5rem 1rem;" onclick="loadTickets()">Atualizar <i class="fa-solid fa-rotate"></i></button>
+        </div>
+
+        <div id="tickets-list">
+            <!-- Tickets will be loaded here -->
+            <div class="glass" style="padding: 2rem; text-align: center;">A carregar tickets...</div>
+        </div>
+
+        <footer>
+            <div class="logo">LAAC</div>
+            <div class="footer-links">
+                <a href="#">Privacidade</a>
+                <a href="#">Termos</a>
+                <a href="report.html" class="btn-report-bug"><i class="fa-solid fa-bug"></i> Reportar Problema</a>
+            </div>
+            <p class="text-muted">&copy; 2026 LAAC UBI. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <script>
+        let availableTeams = [];
+
+        async function loadTeams() {
+            try {
+                const token = localStorage.getItem('laac_token');
+                const response = await fetch('/api/staff/teams', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                availableTeams = await response.json();
+                
+                const filter = document.getElementById('team-filter');
+                filter.innerHTML = '<option value="">Todas as Equipas</option>' + 
+                    availableTeams.map(t => `<option value="${t}">${t}</option>`).join('');
+            } catch (e) {}
+        }
+
+        async function loadTickets() {
+            const status = document.getElementById('status-filter').value;
+            const team = document.getElementById('team-filter').value;
+            const list = document.getElementById('tickets-list');
+            
+            try {
+                const token = localStorage.getItem('laac_token');
+                let url = '/api/tickets?';
+                if (status) url += `status=${status}&`;
+                if (team) url += `team=${team}&`;
+                
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    throw new Error(`Failed to load tickets: ${response.statusText}`);
+                }
+                const tickets = await response.json();
+
+                if (tickets.length === 0) {
+                    list.innerHTML = `<div class="glass" style="padding: 2rem; text-align: center;">Não foram encontrados tickets.</div>`;
+                    return;
+                }
+
+                list.innerHTML = tickets.map(t => {
+                    const statusClass = `status-${t.status.replace(' ', '').toLowerCase()}`;
+                    const typeIcon = t.type === 'bug' ? 'fa-bug' : (t.type === 'administrative' ? 'fa-file-invoice' : 'fa-circle-info');
+                    const date = new Date(t.created_at).toLocaleString('pt-PT');
+
+                    const teamOptions = availableTeams.map(teamName => 
+                        `<option value="${teamName}" ${t.assigned_team === teamName ? 'selected' : ''}>${teamName}</option>`
+                    ).join('');
+
+                    return `
+                        <div class="ticket-card glass">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="display: flex; align-items: center;">
+                                    <div class="type-icon"><i class="fa-solid ${typeIcon}"></i></div>
+                                    <div>
+                                        <h3 style="margin-bottom: 0.2rem;">${t.title}</h3>
+                                        <p class="text-muted" style="font-size: 0.9rem;">ID: #${t.id} | ${date}</p>
+                                    </div>
+                                </div>
+                                <span class="status-badge ${statusClass}">${t.status}</span>
+                            </div>
+                            
+                            <div style="margin: 1rem 0; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                                <p>${t.description}</p>
+                            </div>
+
+                            <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <span class="text-muted" style="font-size: 0.8rem;">Estado:</span>
+                                    <select class="auth-input" style="width: auto; margin-bottom: 0; padding: 0.2rem 0.5rem;" onchange="updateTicket(${t.id}, { status: this.value })">
+                                        <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>Pendente</option>
+                                        <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>Em Progresso</option>
+                                        <option value="Resolved" ${t.status === 'Resolved' ? 'selected' : ''}>Resolvido</option>
+                                        <option value="Closed" ${t.status === 'Closed' ? 'selected' : ''}>Fechado</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <span class="text-muted" style="font-size: 0.8rem;">Equipa:</span>
+                                    <select class="auth-input" style="width: auto; margin-bottom: 0; padding: 0.2rem 0.5rem;" onchange="updateTicket(${t.id}, { assigned_team: this.value })">
+                                        ${teamOptions}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                list.innerHTML = `<div class="glass" style="padding: 2rem; text-align: center; color: var(--danger);">Erro ao carregar tickets.</div>`;
+            }
+        }
+
+        async function updateTicket(id, data) {
+            try {
+                const token = localStorage.getItem('laac_token');
+                const response = await fetch(`/api/tickets/${id}`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    loadTickets();
+                } else {
+                    alert('Erro ao atualizar ticket.');
+                }
+            } catch (e) {
+                alert('Erro de ligação.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadTeams();
+            loadTickets();
+        });
+    </script>
+</body>
+</html>

@@ -18,16 +18,6 @@ CREATE TABLE classes (
   end_time TIME
 );
 
-CREATE TABLE schedule_reports (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  class_id INT,
-  subject_name VARCHAR(255),
-  description TEXT NOT NULL,
-  status VARCHAR(50) DEFAULT 'Pending',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 
 -- Initial data for semesters
 INSERT INTO semesters (semester_number, academic_year, start_date, end_date) VALUES 

@@ -7,6 +7,7 @@ import jwt
 import httpx
 import os
 from datetime import datetime, timedelta
+import json
 
 app = FastAPI(title="LAAC Auth Service")
 
@@ -139,6 +140,43 @@ async def validate_token(token: str):
         return {"valid": True, "user": payload["sub"]}
     except:
         raise HTTPException(status_code=401, detail="Token inválido")
+
+# Roles & Permissions Management
+@app.get("/roles")
+async def list_roles(db: Session = Depends(get_db)):
+    result = db.execute(text("SELECT role_name, description, permissions FROM roles")).fetchall()
+    return [{"role_name": r[0], "description": r[1], "permissions": json.loads(r[2]) if r[2] else []} for r in result]
+
+@app.put("/roles/{role_name}")
+async def update_role(role_name: str, payload: dict, db: Session = Depends(get_db)):
+    description = payload.get("description")
+    permissions = payload.get("permissions") # List of strings
+    
+    if permissions is not None:
+        db.execute(
+            text("UPDATE roles SET description = :desc, permissions = :perms WHERE role_name = :name"),
+            {"desc": description, "perms": json.dumps(permissions), "name": role_name}
+        )
+    else:
+        db.execute(
+            text("UPDATE roles SET description = :desc WHERE role_name = :name"),
+            {"desc": description, "name": role_name}
+        )
+    db.commit()
+    return {"message": f"Role {role_name} atualizado"}
+
+@app.post("/roles")
+async def create_role(payload: dict, db: Session = Depends(get_db)):
+    name = payload.get("role_name")
+    desc = payload.get("description", "")
+    perms = payload.get("permissions", [])
+    
+    db.execute(
+        text("INSERT INTO roles (role_name, description, permissions) VALUES (:name, :desc, :perms)"),
+        {"name": name, "desc": desc, "perms": json.dumps(perms)}
+    )
+    db.commit()
+    return {"message": f"Role {name} criado"}
 
 if __name__ == "__main__":
     import uvicorn
