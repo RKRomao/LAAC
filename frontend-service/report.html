@@ -351,6 +351,19 @@
                 const resProfile = await fetch(`/api/profiles/${email}`);
                 userProfileData = await resProfile.json();
                 
+                if (!userProfileData || !userProfileData.course || userProfileData.course === "Não especificado") {
+                    document.getElementById('schedule-loading').innerHTML = `
+                        <div style="padding: 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                            <i class="fa-solid fa-graduation-cap" style="font-size: 2.5rem; color: var(--blue-service); opacity: 0.8;"></i>
+                            <p class="text-muted" style="max-width: 400px; margin: 0 auto; line-height: 1.5;">Configura o teu curso no perfil para ver o horário.</p>
+                            <a href="profile.html" class="btn-load-more" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                <i class="fa-solid fa-circle-user"></i> Configurar Perfil
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+                
                 const resCourses = await fetch('/api/courses');
                 const courses = await resCourses.json();
                 const course = courses.find(c => c.name === userProfileData.course || c.acronym === userProfileData.course);
@@ -362,6 +375,7 @@
                 
                 renderTimeline(classes);
             } catch (e) {
+                console.error("Error loading schedule:", e);
                 document.getElementById('schedule-loading').innerHTML = `
                     <p class="text-muted">Não conseguimos carregar o teu horário. Podes descrever o problema manualmente abaixo.</p>
                 `;

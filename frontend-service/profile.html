@@ -200,14 +200,16 @@
                 profileData = await response.json();
 
                 // UI Update
-                document.getElementById('profile-name').innerText = profileData.display_name;
-                document.getElementById('profile-bio').innerText = profileData.bio;
-                document.getElementById('profile-avatar').src = profileData.avatar_url;
+                document.getElementById('profile-name').innerText = profileData.display_name || userEmail.split('@')[0];
+                document.getElementById('profile-bio').innerText = profileData.bio || 'Sem biografia.';
+                document.getElementById('profile-avatar').src = profileData.avatar_url || 'https://ui-avatars.com/api/?name=' + userEmail;
                 
+                const bannerImg = document.getElementById('profile-banner-img');
                 if (profileData.banner_url) {
-                    const bannerImg = document.getElementById('profile-banner-img');
                     bannerImg.src = profileData.banner_url;
                     bannerImg.style.display = 'block';
+                } else {
+                    bannerImg.style.display = 'none';
                 }
 
                 // Privacy Handling in UI

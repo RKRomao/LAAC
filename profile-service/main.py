@@ -103,40 +103,49 @@ async def get_profile(email: str, db: Session = Depends(get_db)):
 
 @app.post("/profiles")
 async def update_profile(profile: ProfileUpdate, db: Session = Depends(get_db)):
-    # Check if exists
-    exists = db.execute(text("SELECT 1 FROM user_profiles WHERE email = :e"), {"e": profile.email}).fetchone()
-    
-    if exists:
-        db.execute(
-            text("""
-                UPDATE user_profiles 
-                SET display_name = :d, bio = :b, avatar_url = :a, banner_url = :banner, 
-                    course = :c, year = :y, social_links = :s, privacy_settings = :p
-                WHERE email = :e
-            """),
-            {
-                "d": profile.display_name, "b": profile.bio, "a": profile.avatar_url, 
-                "banner": profile.banner_url, "c": profile.course, "y": profile.year, 
-                "s": json.dumps(profile.social_links), "p": json.dumps(profile.privacy_settings),
-                "e": profile.email
-            }
-        )
-    else:
-        db.execute(
-            text("""
-                INSERT INTO user_profiles (email, display_name, bio, avatar_url, banner_url, course, year, social_links, privacy_settings)
-                VALUES (:e, :d, :b, :a, :banner, :c, :y, :s, :p)
-            """),
-            {
-                "e": profile.email, "d": profile.display_name, "b": profile.bio, 
-                "a": profile.avatar_url, "banner": profile.banner_url, "c": profile.course, 
-                "y": profile.year, "s": json.dumps(profile.social_links), 
-                "p": json.dumps(profile.privacy_settings)
-            }
-        )
-    
-    db.commit()
-    return {"status": "success", "message": "Perfil atualizado!"}
+    try:
+        # Check if exists
+        exists = db.execute(text("SELECT 1 FROM user_profiles WHERE email = :e"), {"e": profile.email}).fetchone()
+        
+        # Ensure dict inputs are robustly converted to JSON strings
+        social_links_str = json.dumps(profile.social_links) if profile.social_links is not None else "{}"
+        privacy_settings_str = json.dumps(profile.privacy_settings) if profile.privacy_settings is not None else "{}"
+        
+        if exists:
+            db.execute(
+                text("""
+                    UPDATE user_profiles 
+                    SET display_name = :d, bio = :b, avatar_url = :a, banner_url = :banner, 
+                        course = :c, year = :y, social_links = :s, privacy_settings = :p
+                    WHERE email = :e
+                """),
+                {
+                    "d": profile.display_name, "b": profile.bio, "a": profile.avatar_url, 
+                    "banner": profile.banner_url, "c": profile.course, "y": profile.year, 
+                    "s": social_links_str, "p": privacy_settings_str,
+                    "e": profile.email
+                }
+            )
+        else:
+            db.execute(
+                text("""
+                    INSERT INTO user_profiles (email, display_name, bio, avatar_url, banner_url, course, year, social_links, privacy_settings)
+                    VALUES (:e, :d, :b, :a, :banner, :c, :y, :s, :p)
+                """),
+                {
+                    "e": profile.email, "d": profile.display_name, "b": profile.bio, 
+                    "a": profile.avatar_url, "banner": profile.banner_url, "c": profile.course, 
+                    "y": profile.year, "s": social_links_str, 
+                    "p": privacy_settings_str
+                }
+            )
+        
+        db.commit()
+        return {"status": "success", "message": "Perfil atualizado!"}
+    except Exception as error:
+        db.rollback()
+        print(f"CRITICAL ERROR in update_profile: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar perfil: {str(error)}")
 
 @app.post("/profiles/upload")
 async def upload_profile_image(file: UploadFile = File(...)):

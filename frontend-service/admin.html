@@ -18,17 +18,20 @@
         <aside class="sidebar">
             <div class="logo">LAAC <span>Admin</span></div>
             <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <a href="#" id="link-users" class="sidebar-link active" onclick="switchView('users')"><i class="fa-solid fa-users"></i> Utilizadores</a>
+                <a href="#" id="link-users" class="sidebar-link active" onclick="switchView('users')"><i
+                        class="fa-solid fa-users"></i> Utilizadores</a>
                 <a href="#" id="link-logs" class="sidebar-link" onclick="switchView('logs')">
                     <i class="fa-solid fa-clock-rotate-left"></i> Logs Atividade
                 </a>
                 <a href="#" id="link-response" class="sidebar-link" onclick="switchView('response')">
-                    <i class="fa-solid fa-truck-medical"></i> Centro Resposta <span id="alert-badge" class="badge" style="display:none; background: #ef4444; color: white;">0</span>
+                    <i class="fa-solid fa-truck-medical"></i> Centro Resposta <span id="alert-badge" class="badge"
+                        style="display:none; background: #ef4444; color: white;">0</span>
                 </a>
                 <a href="#" id="link-history" class="sidebar-link" onclick="switchView('history')">
                     <i class="fa-solid fa-file-invoice"></i> Histórico Resolvidas
                 </a>
-                <a href="#" id="link-permissions" class="sidebar-link" onclick="switchView('permissions')"><i class="fa-solid fa-shield-halved"></i> Permissões</a>
+                <a href="#" id="link-permissions" class="sidebar-link" onclick="switchView('permissions')"><i
+                        class="fa-solid fa-shield-halved"></i> Permissões</a>
                 <hr style="opacity: 0.1; margin: 1rem 0;">
                 <a href="report.html" class="sidebar-link"><i class="fa-solid fa-headset"></i> Suporte</a>
                 <a href="index.html" class="sidebar-link"><i class="fa-solid fa-house"></i> Voltar à App</a>
@@ -39,7 +42,8 @@
             <!-- View: Users -->
             <div id="view-users">
                 <!-- ... existing users header and stats ... -->
-                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
                     <h1>Gestão de Acessos</h1>
                     <div class="user-info">
                         <span class="badge">Administrador</span>
@@ -62,18 +66,21 @@
                 </div>
 
                 <div class="content-card glass" style="padding: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                         <h2>Lista de Utilizadores</h2>
                         <div style="display: flex; gap: 1rem;">
                             <button class="btn-secondary" onclick="loadUsers()">
                                 <i class="fa-solid fa-rotate"></i> Atualizar
                             </button>
-                            <button class="btn-auth" style="margin: 0; padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.9rem;" onclick="showCreateModal()">
+                            <button class="btn-auth"
+                                style="margin: 0; padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.9rem;"
+                                onclick="showCreateModal()">
                                 <i class="fa-solid fa-user-plus"></i> Novo Utilizador
                             </button>
                         </div>
                     </div>
-                    
+
                     <table class="user-table">
                         <thead>
                             <tr>
@@ -93,7 +100,8 @@
 
             <!-- View: Response Center (NEW) -->
             <div id="view-response" style="display: none;">
-                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
                     <h1>Centro de Resposta (Emergências)</h1>
                     <div class="user-info">
                         <span id="response-status-badge" class="badge">Pronto</span>
@@ -101,7 +109,8 @@
                 </header>
 
                 <div class="content-card glass" style="padding: 2rem; border-color: rgba(239, 68, 68, 0.2);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                         <h2 style="color: #ef4444;"><i class="fa-solid fa-circle-exclamation"></i> Alertas Ativos</h2>
                         <button class="btn-secondary" onclick="loadEmergencies()">
                             <i class="fa-solid fa-rotate"></i> Atualizar
@@ -119,7 +128,10 @@
                             </tr>
                         </thead>
                         <tbody id="emergency-list-body">
-                            <tr><td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">Nenhuma emergência ativa. Bom trabalho!</td></tr>
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                    Nenhuma emergência ativa. Bom trabalho!</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -127,7 +139,8 @@
 
             <!-- View: Logs -->
             <div id="view-logs" style="display: none;">
-                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
                     <h1>Audit Trail (Logs)</h1>
                     <div class="user-info">
                         <span class="badge">Auditoria</span>
@@ -135,7 +148,8 @@
                 </header>
 
                 <div class="content-card glass" style="padding: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                         <h2>Histórico de Atividade</h2>
                         <button class="btn-secondary" onclick="loadLogs()">
                             <i class="fa-solid fa-rotate"></i> Atualizar
@@ -159,7 +173,8 @@
 
             <!-- View: History -->
             <div id="view-history" style="display: none;">
-                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
                     <h1>Histórico de Emergências</h1>
                     <div class="user-info">
                         <span class="badge">Resolvidas</span>
@@ -167,7 +182,8 @@
                 </header>
 
                 <div class="content-card glass" style="padding: 2rem; border-color: rgba(34, 197, 94, 0.2);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                         <h2 style="color: #22c55e;"><i class="fa-solid fa-check-circle"></i> Incidentes Resolvidos</h2>
                         <button class="btn-secondary" onclick="loadHistory()">
                             <i class="fa-solid fa-rotate"></i> Atualizar
@@ -190,7 +206,8 @@
 
             <!-- View: Permissions -->
             <div id="view-permissions" style="display: none;">
-                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <header
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
                     <h1>Gestão de Permissões</h1>
                     <div class="user-info">
                         <span class="badge">Segurança</span>
@@ -198,40 +215,51 @@
                 </header>
 
                 <div class="content-card glass" style="padding: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                         <h2>Cargos e Níveis de Acesso</h2>
                         <button class="btn-secondary" onclick="loadRoles()">
                             <i class="fa-solid fa-rotate"></i> Atualizar
                         </button>
                     </div>
-                    
-                    <div id="roles-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+
+                    <div id="roles-container"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
                         <!-- Roles will be loaded here -->
                     </div>
                 </div>
 
                 <!-- Edit Role Modal -->
-                <div id="role-modal" class="glass" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; padding: 2rem; width: 500px; max-width: 90vw;">
+                <div id="role-modal" class="glass"
+                    style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 101; padding: 2rem; width: 500px; max-width: 90vw;">
                     <h2 id="role-modal-title">Editar Role</h2>
                     <form onsubmit="saveRole(event)">
                         <input type="hidden" id="edit-role-name">
                         <div class="form-group" style="margin-top: 1rem;">
                             <label>Descrição</label>
-                            <textarea id="edit-role-desc" class="auth-input" style="height: 80px; resize: none;"></textarea>
+                            <textarea id="edit-role-desc" class="auth-input"
+                                style="height: 80px; resize: none;"></textarea>
                         </div>
                         <div class="form-group" style="margin-top: 1rem;">
                             <label>Permissões</label>
-                            <div id="permissions-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
-                                <label class="checkbox-label"><input type="checkbox" value="view_admin"> View Admin</label>
-                                <label class="checkbox-label"><input type="checkbox" value="manage_users"> Manage Users</label>
-                                <label class="checkbox-label"><input type="checkbox" value="manage_permissions"> Manage Perms</label>
-                                <label class="checkbox-label"><input type="checkbox" value="manage_reports"> Manage Reports</label>
-                                <label class="checkbox-label"><input type="checkbox" value="manage_emergencies"> Manage SOS</label>
+                            <div id="permissions-list"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+                                <label class="checkbox-label"><input type="checkbox" value="view_admin"> View
+                                    Admin</label>
+                                <label class="checkbox-label"><input type="checkbox" value="manage_users"> Manage
+                                    Users</label>
+                                <label class="checkbox-label"><input type="checkbox" value="manage_permissions"> Manage
+                                    Perms</label>
+                                <label class="checkbox-label"><input type="checkbox" value="manage_reports"> Manage
+                                    Reports</label>
+                                <label class="checkbox-label"><input type="checkbox" value="manage_emergencies"> Manage
+                                    SOS</label>
                             </div>
                         </div>
                         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                             <button type="submit" class="btn-auth" style="flex: 1;">Guardar</button>
-                            <button type="button" class="btn-secondary" style="flex: 1;" onclick="hideRoleModal()">Cancelar</button>
+                            <button type="button" class="btn-secondary" style="flex: 1;"
+                                onclick="hideRoleModal()">Cancelar</button>
                         </div>
                     </form>
                 </div>
@@ -244,11 +272,13 @@
                 <form onsubmit="createUser(event)">
                     <div class="form-group" style="margin-top: 1rem;">
                         <label>E-mail</label>
-                        <input type="email" id="new-email" class="auth-input" placeholder="exemplo@laac.pt" autocomplete="username" required>
+                        <input type="email" id="new-email" class="auth-input" placeholder="exemplo@laac.pt"
+                            autocomplete="username" required>
                     </div>
                     <div class="form-group" style="margin-top: 1rem;">
                         <label>Password</label>
-                        <input type="password" id="new-password" class="auth-input" placeholder="••••••••" autocomplete="new-password" required>
+                        <input type="password" id="new-password" class="auth-input" placeholder="••••••••"
+                            autocomplete="new-password" required>
                     </div>
                     <div class="form-group" style="margin-top: 1rem;">
                         <label>Role</label>
@@ -262,7 +292,8 @@
                     </div>
                     <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                         <button type="submit" class="btn-auth" style="flex: 1;">Criar</button>
-                        <button type="button" class="btn-secondary" style="flex: 1;" onclick="hideCreateModal()">Cancelar</button>
+                        <button type="button" class="btn-secondary" style="flex: 1;"
+                            onclick="hideCreateModal()">Cancelar</button>
                     </div>
                 </form>
             </div>
@@ -283,7 +314,7 @@
         // Security check: Only Admins allowed here
         const token = localStorage.getItem('laac_token');
         const role = localStorage.getItem('laac_role');
-        
+
         if (!token || role !== 'admin') {
             console.warn("Acesso negado.");
             if (role && role.includes('Response-team')) {
@@ -299,13 +330,13 @@
             document.getElementById('view-response').style.display = view === 'response' ? 'block' : 'none';
             document.getElementById('view-history').style.display = view === 'history' ? 'block' : 'none';
             document.getElementById('view-permissions').style.display = view === 'permissions' ? 'block' : 'none';
-            
+
             document.getElementById('link-users').classList.toggle('active', view === 'users');
             document.getElementById('link-logs').classList.toggle('active', view === 'logs');
             document.getElementById('link-response').classList.toggle('active', view === 'response');
             document.getElementById('link-history').classList.toggle('active', view === 'history');
             document.getElementById('link-permissions').classList.toggle('active', view === 'permissions');
-            
+
             if (view === 'logs') loadLogs();
             if (view === 'users') loadUsers();
             if (view === 'response') loadEmergencies();
@@ -319,16 +350,12 @@
                 const roles = await response.json();
                 const container = document.getElementById('roles-container');
                 container.innerHTML = '';
-                
+
                 roles.forEach(role => {
                     const card = document.createElement('div');
-                    card.className = 'stat-card glass';
-                    card.style.textAlign = 'left';
-                    card.style.display = 'flex';
-                    card.style.flexDirection = 'column';
-                    card.style.justifyContent = 'space-between';
-                    
-                    const permsHtml = role.permissions.map(p => 
+                    card.className = 'role-card glass';
+
+                    const permsHtml = role.permissions.map(p =>
                         `<span class="badge" style="background: rgba(99, 102, 241, 0.1); color: #818cf8; margin: 2px; font-size: 0.7rem;">${p}</span>`
                     ).join('');
 
@@ -336,7 +363,7 @@
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                                 <h3 style="margin: 0; color: #818cf8;">${role.role_name}</h3>
-                                <button class="nav-btn" onclick="showRoleModal('${role.role_name}', '${role.description}', ${JSON.stringify(role.permissions).replace(/"/g, '&quot;')})">
+                                <button class="nav-btn" style="width: 35px; height: 35px; font-size: 0.85rem;" onclick="showRoleModal('${role.role_name}', '${role.description}', ${JSON.stringify(role.permissions).replace(/"/g, '&quot;')})">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                             </div>
@@ -357,13 +384,13 @@
             document.getElementById('role-modal-title').innerText = `Editar ${name}`;
             document.getElementById('edit-role-name').value = name;
             document.getElementById('edit-role-desc').value = desc;
-            
+
             // Clear and set checkboxes
             const checkboxes = document.querySelectorAll('#permissions-list input[type="checkbox"]');
             checkboxes.forEach(cb => {
                 cb.checked = perms.includes(cb.value);
             });
-            
+
             document.getElementById('role-modal').style.display = 'block';
         }
 
@@ -377,14 +404,14 @@
             const desc = document.getElementById('edit-role-desc').value;
             const checkboxes = document.querySelectorAll('#permissions-list input[type="checkbox"]:checked');
             const perms = Array.from(checkboxes).map(cb => cb.value);
-            
+
             try {
                 const response = await fetch(`/api/roles/${name}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ description: desc, permissions: perms })
                 });
-                
+
                 if (response.ok) {
                     hideRoleModal();
                     loadRoles();
@@ -402,7 +429,7 @@
                 const alerts = await response.json();
                 const tableBody = document.getElementById('emergency-list-body');
                 const badge = document.getElementById('alert-badge');
-                
+
                 tableBody.innerHTML = '';
                 if (alerts.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">Nenhuma emergência ativa. Bom trabalho!</td></tr>';
@@ -442,7 +469,7 @@
             }
 
             try {
-                const response = await fetch(`/api/emergency/alerts/${id}`, { 
+                const response = await fetch(`/api/emergency/alerts/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status, resolution_note: note })
@@ -461,7 +488,7 @@
                 const response = await fetch('/api/emergency/history');
                 const history = await response.json();
                 const tableBody = document.getElementById('history-list-body');
-                
+
                 tableBody.innerHTML = '';
                 if (history.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">Histórico vazio.</td></tr>';
@@ -492,7 +519,7 @@
             try {
                 const response = await fetch(`/api/notifications/Response-team`);
                 const notifs = await response.json();
-                
+
                 if (notifs.length > 0) {
                     notifs.forEach(n => {
                         // Show browser notification or alert
@@ -500,7 +527,7 @@
                     });
                     loadEmergencies();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         async function loadLogs() {
@@ -508,7 +535,7 @@
                 const response = await fetch('/api/logs');
                 const logs = await response.json();
                 const tableBody = document.getElementById('log-list-body');
-                
+
                 tableBody.innerHTML = '';
                 logs.forEach(log => {
                     const statusClass = log.status === 'warning' ? 'color: #f59e0b' : (log.status === 'error' ? 'color: #ef4444' : '');
@@ -540,10 +567,10 @@
                 totalUsers.innerText = users.length;
 
                 users.forEach(user => {
-                    const onlineStatus = user.is_online ? 
-                        '<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">Online</span>' : 
+                    const onlineStatus = user.is_online ?
+                        '<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">Online</span>' :
                         '<span class="badge" style="background: rgba(156, 163, 175, 0.2); color: #9ca3af;">Offline</span>';
-                    
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>#${user.id}</td>
@@ -567,7 +594,7 @@
         async function editUser(userId, currentRole, currentPhone) {
             const newRole = prompt("Novo Role (aluno, LAAC-staff:Response-team, etc):", currentRole);
             if (newRole === null) return;
-            
+
             const newPhone = prompt("Novo Telefone de Contacto:", currentPhone);
             if (newPhone === null) return;
 

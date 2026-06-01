@@ -31,6 +31,7 @@ async function loadLocations() {
     try {
         const response = await fetch('/api/locations');
         allLocations = await response.json();
+        searchLocations(); // Populate default suggestions on load
     } catch (error) {
         console.error('Error loading locations:', error);
     }
@@ -57,18 +58,43 @@ function toggleTimeInput(e) {
 }
 
 function searchLocations() {
-    const query = document.getElementById('dest-input').value.toLowerCase();
+    const query = document.getElementById('dest-input').value.toLowerCase().trim();
     const resultsDiv = document.getElementById('search-results');
     resultsDiv.innerHTML = '';
 
-    if (query.length < 2) return;
+    let listToDisplay = [];
 
-    const filtered = allLocations.filter(l => 
-        l.name.toLowerCase().includes(query) || 
-        l.type.toLowerCase().includes(query)
-    ).slice(0, 5);
+    if (query.length < 2) {
+        // Show default suggestions (e.g. popular locations)
+        const popularLocNames = ["Polo I", "Biblioteca Central UBI", "Faculdade de Engenharia", "Departamento de Informática", "Faculdade de Ciências da Saúde"];
+        listToDisplay = allLocations.filter(l => popularLocNames.includes(l.name)).slice(0, 5);
+        
+        // If those are not found (e.g. data hasn't loaded properly or is empty), fallback to first 5
+        if (listToDisplay.length === 0) {
+            listToDisplay = allLocations.slice(0, 5);
+        }
+        
+        // Add a "Recomendados" header
+        const header = document.createElement('div');
+        header.className = 'results-header';
+        header.style.padding = '0.5rem 1rem';
+        header.style.fontSize = '0.75rem';
+        header.style.color = '#818cf8';
+        header.style.fontWeight = 'bold';
+        header.style.textTransform = 'uppercase';
+        header.style.letterSpacing = '1px';
+        header.style.borderBottom = '1px solid var(--glass-border)';
+        header.style.marginBottom = '0.5rem';
+        header.innerHTML = '<i class="fa-solid fa-star" style="color: #f59e0b; margin-right: 0.5rem;"></i> Locais Recomendados';
+        resultsDiv.appendChild(header);
+    } else {
+        listToDisplay = allLocations.filter(l => 
+            l.name.toLowerCase().includes(query) || 
+            l.type.toLowerCase().includes(query)
+        ).slice(0, 5);
+    }
 
-    filtered.forEach(loc => {
+    listToDisplay.forEach(loc => {
         const div = document.createElement('div');
         div.className = 'result-item';
         div.innerHTML = `<strong>${loc.name}</strong><br><small>${loc.type}</small>`;
@@ -151,6 +177,7 @@ function clearRoute() {
     document.getElementById('route-panel').style.display = 'none';
     document.getElementById('dest-input').value = '';
     lastSelectedLoc = null;
+    searchLocations(); // Restore default suggestions
 }
 
 document.addEventListener('DOMContentLoaded', () => {
