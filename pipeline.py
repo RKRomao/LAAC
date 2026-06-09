@@ -102,6 +102,11 @@ def main():
             # Running tests inside the container ensures the correct environment
             res = run_command(["docker-compose", "run", "--rm", service, "python", "-m", "pytest", "tests"])
             
+            # Fallback to unittest if pytest is not installed
+            if res.returncode != 0 and ("No module named pytest" in res.stdout or "No module named pytest" in res.stderr):
+                print(f"pytest not found in {service}. Falling back to unittest...")
+                res = run_command(["docker-compose", "run", "--rm", service, "python", "-m", "unittest", "discover", "-s", "tests"])
+
             if res.returncode == 0:
                 report.append(f"- [OK] **{service}**: All tests passed")
             else:

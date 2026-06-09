@@ -435,11 +435,143 @@ async function pollNotifications() {
     } catch (e) { console.error("Polling error:", e); }
 }
 
+// Dynamic Events & Activities Loader & Carousel Controls
+function scrollEvents(direction) {
+    const container = document.getElementById('events-container');
+    if (!container) return;
+    const cardWidth = 320; 
+    const gap = 32; // 2rem
+    container.scrollBy({
+        left: direction * (cardWidth + gap),
+        behavior: 'smooth'
+    });
+}
+
+async function initEvents() {
+    const container = document.getElementById('events-container');
+    if (!container) return;
+
+    try {
+        const response = await fetch('/api/events');
+        if (response.ok) {
+            const events = await response.json();
+            
+            // Sort events: put upcoming events first, past events last
+            const sortedEvents = events.sort((a, b) => {
+                const dateA = new Date(a.date.replace(' ', 'T'));
+                const dateB = new Date(b.date.replace(' ', 'T'));
+                return dateA - dateB; // Chronological order
+            });
+
+            container.innerHTML = sortedEvents.map(evt => {
+                let icon = 'fa-calendar-days';
+                if (evt.category.toLowerCase() === 'desporto') icon = 'fa-volleyball';
+                if (evt.category.toLowerCase() === 'tradição') icon = 'fa-graduation-cap';
+                if (evt.category.toLowerCase() === 'formação') icon = 'fa-laptop-code';
+
+                // Determine if event is in the past
+                const eventDate = new Date(evt.date.replace(' ', 'T'));
+                const isPast = eventDate < new Date();
+                
+                const cardClass = isPast ? 'event-card placeholder-card glass past-event' : 'event-card placeholder-card glass';
+                const statusBadge = isPast 
+                    ? `<span style="background: rgba(148, 163, 184, 0.15); color: var(--text-muted); padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.3rem;"><i class="fa-solid fa-clock-rotate-left"></i> Passado</span>`
+                    : `<span style="background: rgba(6, 182, 212, 0.15); color: var(--accent); border: 1px solid rgba(6, 182, 212, 0.3); padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;"><i class="fa-solid fa-calendar-check"></i> Próximo</span>`;
+
+                return `
+                    <div class="${cardClass}" style="height: auto; align-items: flex-start; justify-content: flex-start; padding: 2rem; gap: 1rem; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <span class="faq-category" style="margin: 0; color: var(--accent);"><i class="fa-solid ${icon}"></i> ${evt.category}</span>
+                            ${statusBadge}
+                        </div>
+                        <h3 style="font-size: 1.3rem; font-weight: 700; margin-top: 0.5rem; line-height: 1.3;">${evt.title}</h3>
+                        <p class="text-muted" style="font-size: 0.9rem; flex: 1;">${evt.description}</p>
+                        <div style="width: 100%; border-top: 1px solid var(--glass-border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; opacity: 0.8;">
+                            <div><i class="fa-regular fa-clock" style="margin-right: 0.5rem; color: var(--primary);"></i> <strong>Quando:</strong> ${evt.date}</div>
+                            <div><i class="fa-solid fa-location-dot" style="margin-right: 0.5rem; color: var(--secondary);"></i> <strong>Onde:</strong> ${evt.location}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (e) {
+        console.error("Error loading events:", e);
+        container.innerHTML = `<p class="text-muted" style="text-align: center; width: 100%;">Erro ao carregar os eventos. Tente mais tarde.</p>`;
+    }
+}
+
+// Mentor Digital Chatbot Logic
+function toggleBotChat() {
+    const overlay = document.getElementById('bot-chat-overlay');
+    overlay.classList.toggle('active');
+}
+
+let isBotSending = false;
+async function sendBotMessage() {
+    if (isBotSending) return;
+    const input = document.getElementById('bot-chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    isBotSending = true;
+    input.value = '';
+
+    const container = document.getElementById('bot-chat-messages');
+    
+    // Append user message immediately
+    const userMsgDiv = document.createElement('div');
+    userMsgDiv.className = 'msg user';
+    userMsgDiv.textContent = message;
+    container.appendChild(userMsgDiv);
+    container.scrollTop = container.scrollHeight;
+
+    // Append standard typing loader
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'msg bot';
+    loadingDiv.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> O Mentor está a pensar...';
+    container.appendChild(loadingDiv);
+    container.scrollTop = container.scrollHeight;
+
+    try {
+        const response = await fetch('/api/bot/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+        
+        container.removeChild(loadingDiv);
+
+        if (response.ok) {
+            const data = await response.json();
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.className = 'msg bot';
+            botMsgDiv.textContent = data.reply;
+            container.appendChild(botMsgDiv);
+        } else {
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.className = 'msg bot';
+            botMsgDiv.textContent = "Oops! Tive um problema de comunicação com o meu servidor da UBI. Podes tentar novamente mais tarde?";
+            container.appendChild(botMsgDiv);
+        }
+    } catch (e) {
+        console.error(e);
+        container.removeChild(loadingDiv);
+        const botMsgDiv = document.createElement('div');
+        botMsgDiv.className = 'msg bot';
+        botMsgDiv.textContent = "Erro de ligação à rede UBI. Por favor, verifica a tua ligação à Internet.";
+        container.appendChild(botMsgDiv);
+    } finally {
+        container.scrollTop = container.scrollHeight;
+        isBotSending = false;
+    }
+}
+
 // Start everything
 document.addEventListener('DOMContentLoaded', () => {
     initNews();
     initMap();
     checkLoginState();
     fetchFAQs();
+    initEvents();
     setInterval(pollNotifications, 5000);
 });

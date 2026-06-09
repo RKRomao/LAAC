@@ -58,18 +58,20 @@ async def create_alert(alert: EmergencyAlert, db: Session = Depends(get_db)):
     except:
         pass
 
-    # 3. Notify Response Team via Notification Service
-    try:
-        async with httpx.AsyncClient() as client:
-            await client.post(f"{NOTIFICATION_SERVICE_URL}/notify", json={
-                "target_role": "Response-team",
-                "message": f"ALERTA CRÍTICO: Emergência do tipo {alert.type} iniciada por {alert.user_email}.",
-                "data": {"lat": alert.lat, "lng": alert.lng, "user": alert.user_email, "id": alert_id}
-            })
-    except:
-        pass
+    # 3. Notify Response Team via Notification Service (apenas se não for triagem do tipo chat)
+    if alert.type != "chat":
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(f"{NOTIFICATION_SERVICE_URL}/notify", json={
+                    "target_role": "Response-team",
+                    "message": f"ALERTA CRÍTICO: Emergência do tipo {alert.type} iniciada por {alert.user_email}.",
+                    "data": {"lat": alert.lat, "lng": alert.lng, "user": alert.user_email, "id": alert_id}
+                })
+        except:
+            pass
 
-    return {"status": "alert_received", "message": "A ajuda está a caminho.", "incident_id": alert_id}
+    success_message = "Mentor Digital NeoLAAC conectado. Podes iniciar a conversa!" if alert.type == "chat" else "A ajuda está a caminho."
+    return {"status": "alert_received", "message": success_message, "incident_id": alert_id}
 
 @app.get("/alerts")
 async def list_alerts(db: Session = Depends(get_db)):

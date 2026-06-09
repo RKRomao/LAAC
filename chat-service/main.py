@@ -43,18 +43,8 @@ async def send_message(msg: ChatMessageCreate, db: Session = Depends(get_db)):
     )
     db.commit()
 
-    # Notify Response Team if it's from a student
-    if not msg.is_responder:
-        try:
-            async with httpx.AsyncClient() as client:
-                await client.post(f"{NOTIFICATION_SERVICE_URL}/notify", json={
-                    "target_role": "Response-team",
-                    "message": f"NOVA MENSAGEM: {msg.sender_email} enviou uma mensagem.",
-                    "data": {"type": "chat_message", "incident_id": msg.incident_id, "user": msg.sender_email}
-                })
-        except:
-            pass
-
+    # Notify Response Team notification logic is now handled by the orchestrator (orq)
+    # depending on whether the incident is in triage or has been escalated.
     return {"status": "message_sent"}
 
 @app.get("/messages/{incident_id}")

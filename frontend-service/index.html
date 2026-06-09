@@ -126,15 +126,18 @@
 
     <!-- Support Hub Quick Access -->
     <section class="section" id="service-reports">
-        <div class="emergency-card glass" style="justify-content: space-between; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(255, 255, 255, 0.05)); border: 1px solid rgba(99, 102, 241, 0.2);">
+        <div class="emergency-card glass"
+            style="justify-content: space-between; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(255, 255, 255, 0.05)); border: 1px solid rgba(99, 102, 241, 0.2);">
             <div style="display: flex; align-items: center; gap: 2rem;">
-                <div class="sos-icon" style="background: var(--primary); box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);"><i class="fa-solid fa-headset"></i></div>
+                <div class="sos-icon"><i class="fa-solid fa-headset"></i></div>
                 <div>
                     <h2 style="margin-bottom: 0.5rem;">Centro de Suporte</h2>
-                    <p class="text-muted" style="max-width: 500px;">Problemas com o horário, erros na plataforma ou dúvidas académicas? Estamos aqui para resolver.</p>
+                    <p class="text-muted" style="max-width: 500px;">Problemas com o horário, erros na plataforma ou
+                        dúvidas académicas? Estamos aqui para resolver.</p>
                 </div>
             </div>
-            <button class="btn-emergency" onclick="window.location.href='report.html'" style="width: auto; padding: 1rem 2.5rem; border-radius: 16px;">
+            <button class="btn-emergency" onclick="window.location.href='report.html'"
+                style="width: auto; padding: 1rem 2.5rem; border-radius: 16px;">
                 Obter Ajuda <i class="fa-solid fa-arrow-right" style="margin-left: 0.5rem;"></i>
             </button>
         </div>
@@ -158,20 +161,54 @@
         </div>
     </section>
 
-    <!-- Future Sections Placeholders -->
-    <section class="section">
-        <div class="placeholder-grid">
-            <div class="placeholder-card glass">
-                <i class="fa-solid fa-calendar-days fa-2x"></i>
-                <p>Calendário em breve</p>
+    <!-- Dynamic Events & Activities Section -->
+    <style>
+        .events-carousel::-webkit-scrollbar {
+            display: none;
+        }
+        .events-carousel {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .event-card {
+            min-width: 320px;
+            max-width: 400px;
+            flex: 0 0 320px; /* Default size for nice scroll */
+            scroll-snap-align: start;
+            transition: var(--transition);
+        }
+        .event-card.past-event {
+            opacity: 0.6;
+            filter: grayscale(40%);
+        }
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+    <section class="section" id="events-section" style="position: relative; overflow: hidden; padding: 5rem 0;">
+        <div class="section-header" style="text-align: center; margin-bottom: 3rem; padding: 0 5%;">
+            <h2>Eventos & Atividades UBI</h2>
+            <p class="text-muted">Mantém-te a par de tudo o que está a acontecer no campus e na comunidade. Desliza para explorar!</p>
+        </div>
+        
+        <!-- Carousel Wrapper with Absolute Fading Overlays and Floating Side Buttons -->
+        <div class="carousel-wrapper" style="position: relative; width: 100%; padding: 0 5%;">
+            
+            <!-- Left Gradient Mask & Floating Button -->
+            <div class="carousel-overlay left" style="position: absolute; top: 0; left: 0; width: 10%; height: 100%; background: linear-gradient(to right, #080e26 35%, transparent 100%); z-index: 10; display: flex; align-items: center; justify-content: flex-start; pointer-events: none;">
+                <button class="nav-btn" onclick="scrollEvents(-1)" style="width: 50px; height: 50px; pointer-events: auto; margin-left: 20%; box-shadow: 0 8px 32px rgba(0,0,0,0.6); backdrop-filter: blur(4px);"><i class="fa-solid fa-chevron-left"></i></button>
             </div>
-            <div class="placeholder-card glass">
-                <i class="fa-solid fa-graduation-cap fa-2x"></i>
-                <p>Guias de Estudo em breve</p>
+            
+            <!-- Right Gradient Mask & Floating Button -->
+            <div class="carousel-overlay right" style="position: absolute; top: 0; right: 0; width: 10%; height: 100%; background: linear-gradient(to left, #080e26 35%, transparent 100%); z-index: 10; display: flex; align-items: center; justify-content: flex-end; pointer-events: none;">
+                <button class="nav-btn" onclick="scrollEvents(1)" style="width: 50px; height: 50px; pointer-events: auto; margin-right: 20%; box-shadow: 0 8px 32px rgba(0,0,0,0.6); backdrop-filter: blur(4px);"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
-            <div class="placeholder-card glass">
-                <i class="fa-solid fa-users-viewfinder fa-2x"></i>
-                <p>Comunidade em breve</p>
+
+            <!-- Scroll Container -->
+            <div id="events-container" class="events-carousel" style="display: flex; gap: 2rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 1.5rem 0.5rem; -webkit-overflow-scrolling: touch;">
+                <!-- Dynamic events will be injected here -->
             </div>
         </div>
     </section>
@@ -202,6 +239,10 @@
                 <i class="fa-solid fa-message"></i> Chat Suporte
                 <span>Falar com equipa LAAC</span>
             </button>
+            <button class="sos-option bot" onclick="toggleBotChat()" style="border-color: rgba(6, 182, 212, 0.2);">
+                <i class="fa-solid fa-robot" style="color: var(--accent);"></i> Mentor Digital
+                <span style="color: var(--accent);">Assistência Inteligente</span>
+            </button>
         </div>
         <button class="btn-sos" id="btn-sos" onclick="toggleSOS()">
             <i class="fa-solid fa-circle-exclamation"></i>
@@ -219,12 +260,30 @@
             </div>
         </div>
         <div class="chat-body" id="chat-messages">
-            <div class="msg bot">Olá! A ligar-te a um membro da equipa LAAC...</div>
+            <div class="msg bot">Olá! Sou o teu Mentor Digital NeoLAAC. Podes colocar-me as tuas dúvidas. Se for algo urgente ou eu não souber responder, irei transferir-te imediatamente para um membro da equipa de suporte real!</div>
         </div>
         <div class="chat-footer">
             <input type="text" class="chat-input" placeholder="Escreve a tua mensagem..."
                 onkeydown="if(event.key === 'Enter') sendChatMessage()">
             <button class="nav-btn" onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Mentor Digital Chat Overlay -->
+    <div class="chat-overlay glass" id="bot-chat-overlay">
+        <div class="chat-header" style="background: var(--accent);">
+            <h3>Mentor Digital UBI</h3>
+            <div class="chat-actions">
+                <button class="nav-btn" onclick="toggleBotChat()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="chat-body" id="bot-chat-messages">
+            <div class="msg bot">Olá! Sou o teu Mentor Digital NeoLAAC. Como posso ajudar-te no teu acolhimento na UBI? Podes perguntar-me sobre o cartão de aluno, cantinas, Wi-Fi Eduroam, bibliotecas ou transportes na Covilhã!</div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" class="chat-input" id="bot-chat-input" placeholder="Pergunta-me algo..."
+                onkeydown="if(event.key === 'Enter') sendBotMessage()">
+            <button class="nav-btn" style="background: var(--accent); border-color: var(--accent);" onclick="sendBotMessage()"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
     </div>
 

@@ -1,0 +1,24 @@
+NeoLAAC Diagram Image Placeholders
+=================================
+
+Place the following image files in this folder to match the figures defined in req.tex:
+
+1. triage_flow.png:
+   - Description: Flow diagram illustrating chat triage and escalation logic from the chatbot to a live Frontdesk support agent.
+   - Referenced in: Figure 1 ("Triage and escalation decision pipeline...")
+
+2. sequence_diagram.png:
+   - Description: UML sequence diagram detailing the HTTP message exchange, DB checks, orchestrator logic, and notifications routing during a threat event.
+   - Referenced in: Figure 2 ("UML Sequence Diagram detailing message routing...")
+
+3. erd_diagram.png:
+   - Description: Entity-Relationship Diagram outlining the database schemas (laac-mariadb and laac-calendar-mariadb), tables structure, and cross-service logical relations.
+   - Referenced in: Figure 3 ("Logical Entity-Relationship Diagram detailing cross-service data relations...")
+
+4. ticket_state_machine.png:
+   - Description: State transition diagram detailing ticket flows (OPEN -> IN PROGRESS -> RESOLVED, cancel actions, reopen rules, etc.).
+   - Referenced in: Figure 4 ("State Machine Diagram illustrating ticket status transitions...")
+
+5. kubernetes_deployment.png:
+   - Description: Architecture topology mapping the frontend pod, gateway pod, microservices, databases, and persistent volumes (PVs) inside the Kubernetes cluster.
+   - Referenced in: Figure 5 ("Infrastructure deployment architecture detailing Kubernetes Ingress mapping...")

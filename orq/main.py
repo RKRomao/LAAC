@@ -7,6 +7,9 @@ import httpx
 
 app = FastAPI(title="LAAC Orchestrator")
 
+# Rastreio de Incidentes Escalados (Triage Híbrida: Bot -> Humanos)
+ESCALATED_INCIDENTS = {}
+
 # Database configuration
 DB_USER = os.getenv("DB_USER", "laac_user")
 DB_PASS = os.getenv("DB_PASS", "laac_pass")
@@ -30,6 +33,9 @@ FEED_SERVICE_URL = os.getenv("FEED_SERVICE_URL", "http://feed-service:8013")
 CALENDAR_SERVICE_URL = os.getenv("CALENDAR_SERVICE_URL", "http://calendar-service:8011")
 ACADEMIC_SERVICE_URL = os.getenv("ACADEMIC_SERVICE_URL", "http://academic-service:3001")
 TICKET_SERVICE_URL = os.getenv("TICKET_SERVICE_URL", "http://ticket-service:8016")
+CHATBOT_SERVICE_URL = os.getenv("CHATBOT_SERVICE_URL", "http://chatbot-service:8009")
+EVENTS_SERVICE_URL = os.getenv("EVENTS_SERVICE_URL", "http://events-service:8014")
+NEWS_SERVICE_URL = os.getenv("NEWS_SERVICE_URL", "http://news-service:8015")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -74,29 +80,36 @@ async def get_logs():
 
 @app.get("/news")
 async def get_news():
-    return [
-        {
-            "id": 1,
-            "title": "Semana Académica 2026",
-            "summary": "Prepara-te para a melhor semana do ano! Bilhetes já à venda.",
-            "date": "2026-05-10",
-            "image": "https://images.unsplash.com/photo-1540575861501-7ce0e1d1aa99?auto=format&fit=crop&q=80&w=800"
-        },
-        {
-            "id": 2,
-            "title": "Novos Menus nas Cantinas",
-            "summary": "A UBI introduziu opções vegetarianas em todos os polos.",
-            "date": "2026-04-28",
-            "image": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&q=80&w=800"
-        },
-        {
-            "id": 3,
-            "title": "Workshop de IA e Robótica",
-            "summary": "Inscrições abertas para o workshop no Bloco 6.",
-            "date": "2026-05-02",
-            "image": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80&w=800"
-        }
-    ]
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{NEWS_SERVICE_URL}/news")
+        return response.json()
+
+@app.post("/news")
+async def create_news(data: dict):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{NEWS_SERVICE_URL}/news", json=data)
+        return response.json()
+
+@app.post("/bot/message")
+async def bot_message(data: dict):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{CHATBOT_SERVICE_URL}/bot/message", json=data)
+        return response.json()
+
+@app.get("/events")
+async def get_events(category: Optional[str] = None):
+    async with httpx.AsyncClient() as client:
+        params = {}
+        if category:
+            params["category"] = category
+        response = await client.get(f"{EVENTS_SERVICE_URL}/events", params=params)
+        return response.json()
+
+@app.post("/events")
+async def create_event(data: dict):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{EVENTS_SERVICE_URL}/events", json=data)
+        return response.json()
 
 @app.get("/faqs")
 async def get_faqs():
@@ -219,8 +232,104 @@ async def get_notifs(role: str):
 
 @app.post("/chat/messages")
 async def send_chat(data: dict):
+    incident_id = data.get("incident_id")
+    sender_email = data.get("sender_email")
+    message = data.get("message", "")
+    is_responder = data.get("is_responder", False)
+
     async with httpx.AsyncClient() as client:
+        # Se a mensagem vier da equipa de suporte humana, marcamos o incidente como escalado
+        if is_responder:
+            ESCALATED_INCIDENTS[incident_id] = True
+            response = await client.post(f"{CHAT_SERVICE_URL}/messages", json=data)
+            return response.json()
+
+        # Enviar primeiro a mensagem do aluno para ficar gravada no histórico
         response = await client.post(f"{CHAT_SERVICE_URL}/messages", json=data)
+        
+        # Se já estiver escalado para humanos, enviamos a mensagem e notificamos a equipa
+        if ESCALATED_INCIDENTS.get(incident_id, False):
+            try:
+                await client.post(f"{NOTIFICATION_SERVICE_URL}/notify", json={
+                    "target_role": "Response-team",
+                    "message": f"NOVA MENSAGEM: {sender_email} enviou uma mensagem.",
+                    "data": {"type": "chat_message", "incident_id": incident_id, "user": sender_email}
+                })
+            except:
+                pass
+            return response.json()
+
+        # Palavras-chave críticas ou pedido de humano para escalamento imediato
+        CRITICAL_KEYWORDS = [
+            "emergência", "urgência", "pânico", "médico", "acidente", 
+            "polícia", "agressão", "ladrão", "roubo", "fogo", "incêndio", 
+            "ferido", "hospital", "morrer", "humano", "pessoa", "assistente", "operador"
+        ]
+        
+        msg_lower = message.lower()
+        if any(keyword in msg_lower for keyword in CRITICAL_KEYWORDS):
+            ESCALATED_INCIDENTS[incident_id] = True
+            
+            # Bot avisa o utilizador no chat que está a transferir
+            bot_msg = "Entendido. Identifiquei um pedido de intervenção urgente ou suporte humano. Vou transferir esta conversa de imediato para a nossa equipa de suporte física (Frontdesk). Por favor, aguarda um momento..."
+            await client.post(f"{CHAT_SERVICE_URL}/messages", json={
+                "incident_id": incident_id,
+                "sender_email": "mentor@ubi.pt",
+                "message": bot_msg,
+                "is_responder": True
+            })
+            
+            # Envia notificação prioritária para a equipa
+            try:
+                await client.post(f"{NOTIFICATION_SERVICE_URL}/notify", json={
+                    "target_role": "Response-team",
+                    "message": f"ESCALAMENTO CRÍTICO: Incidente #{incident_id} transferido para humanos!",
+                    "data": {"type": "chat_message", "incident_id": incident_id, "user": sender_email}
+                })
+            except:
+                pass
+                
+            return {"status": "escalated_to_human"}
+
+        # Se for uma pergunta normal, consultamos o chatbot
+        try:
+            bot_response = await client.post(f"{CHATBOT_SERVICE_URL}/bot/message", json={"message": message})
+            if bot_response.status_code == 200:
+                bot_data = bot_response.json()
+                reply = bot_data.get("reply", "")
+                
+                # Se o bot não souber responder (resposta de fallback do chatbot-service)
+                if "não consegui compreender" in reply.lower():
+                    ESCALATED_INCIDENTS[incident_id] = True
+                    
+                    bot_msg = "Não consegui responder a essa questão com precisão. Vou transferir esta conversa de imediato para a nossa equipa de suporte humana (Frontdesk). Aguarda um momento..."
+                    await client.post(f"{CHAT_SERVICE_URL}/messages", json={
+                        "incident_id": incident_id,
+                        "sender_email": "mentor@ubi.pt",
+                        "message": bot_msg,
+                        "is_responder": True
+                    })
+                    return {"status": "escalated_due_to_fallback"}
+                else:
+                    # O bot resolveu a questão fútil! Gravamos a resposta dele no chat
+                    await client.post(f"{CHAT_SERVICE_URL}/messages", json={
+                        "incident_id": incident_id,
+                        "sender_email": "mentor@ubi.pt",
+                        "message": reply,
+                        "is_responder": True
+                    })
+                    return {"status": "resolved_by_bot"}
+        except Exception as e:
+            # Em caso de falha no serviço do bot, escala de segurança
+            ESCALATED_INCIDENTS[incident_id] = True
+            bot_msg = "Detetei uma falha de comunicação com o meu sistema. Vou ligar-te de imediato à equipa de suporte física (Frontdesk). Por favor, aguarda..."
+            await client.post(f"{CHAT_SERVICE_URL}/messages", json={
+                "incident_id": incident_id,
+                "sender_email": "mentor@ubi.pt",
+                "message": bot_msg,
+                "is_responder": True
+            })
+            
         return response.json()
 
 @app.get("/chat/messages/{incident_id}")

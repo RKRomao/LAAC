@@ -43,6 +43,9 @@ services:
       - FEED_SERVICE_URL=http://feed-service:8013
       - CALENDAR_SERVICE_URL=http://calendar-service:8011
       - ACADEMIC_SERVICE_URL=http://academic-service:3001
+      - CHATBOT_SERVICE_URL=http://chatbot-service:8009
+      - EVENTS_SERVICE_URL=http://events-service:8014
+      - NEWS_SERVICE_URL=http://news-service:8015
     # ports:
     #   - "8000:8000"
     depends_on:
@@ -309,6 +312,36 @@ services:
       calendar-mariadb:
         condition: service_healthy
 
+  chatbot-service:
+    build: ./Chatbot-service
+    container_name: laac-chatbot-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8009 --reload
+    volumes:
+      - ./Chatbot-service:/app
+    environment:
+      - FAQ_SERVICE_URL=http://faq-service:8004
+
+  events-service:
+    build: ./events-service
+    container_name: laac-events-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8014 --reload
+    volumes:
+      - ./events-service:/app
+
+  news-service:
+    build: ./news-service
+    container_name: laac-news-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8015 --reload
+    volumes:
+      - ./news-service:/app
+
+#  tunnel:
+#    image: cloudflare/cloudflared:latest
+#    container_name: laac-tunnel
+#    restart: always
+#    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:-empty_token}
+#    depends_on:
+#      - frontend
 
 volumes:
   mariadb_data:
