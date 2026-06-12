@@ -57,4 +57,4 @@ test_report.md
 *.blg
 *.run.xml
 *.bcf
-
+*.tex
