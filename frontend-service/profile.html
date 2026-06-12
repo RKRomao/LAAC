@@ -10,19 +10,21 @@
     <link rel="stylesheet" href="styles.css">
     
     <link rel="stylesheet" href="profile.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon16x16.png">
 </head>
 <body>
 
     <nav class="navbar glass">
         <div class="nav-content">
-            <div class="nav-logo" onclick="window.location.href='index.html'">
-                <i class="fas fa-rocket"></i>
-                <span>LAAC <span>UBI</span></span>
-            </div>
+            <div class="logo logo-img" onclick="window.location.href='index.html'" style="cursor: pointer;"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC UBI" style="height: 35px;"></div>
             <div class="nav-links">
                 <a href="index.html">Dashboard</a>
                 <a href="map.html">Mapa</a>
                 <a href="social.html">Social</a>
+                <a href="challenges.html">Desafios</a>
+                <a href="nucleos.html">Núcleos</a>
                 <a href="report.html">Suporte</a>
                 <a href="profile.html" class="active">Perfil</a>
                 <button class="btn-logout" onclick="logout()">Sair</button>
@@ -87,7 +89,7 @@
     </div>
 
     <footer>
-        <div class="logo">LAAC</div>
+        <div class="logo logo-img"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC" style="height: 25px;"></div>
         <div class="footer-links">
             <a href="#">Privacidade</a>
             <a href="#">Termos</a>

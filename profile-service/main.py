@@ -198,3 +198,72 @@ async def is_following(user_id: int, target_id: int, db: Session = Depends(get_d
         {"f": user_id, "t": target_id}
     ).fetchone()
     return {"is_following": True if result else False}
+
+@app.get("/organizations")
+async def get_organizations(type: str = None, db: Session = Depends(get_db)):
+    query = "SELECT id, name, type, description, avatar_url, banner_url FROM organizations"
+    params = {}
+    if type:
+        query += " WHERE type = :type"
+        params["type"] = type
+    result = db.execute(text(query), params).fetchall()
+    return [{
+        "id": r[0],
+        "name": r[1],
+        "type": r[2],
+        "description": r[3],
+        "avatar_url": r[4] or f"https://ui-avatars.com/api/?name={r[1]}&background=random",
+        "banner_url": r[5] or "https://via.placeholder.com/800x200?text=Sem+Banner"
+    } for r in result]
+
+@app.get("/organizations/{org_id}")
+async def get_organization(org_id: int, db: Session = Depends(get_db)):
+    org = db.execute(text("""
+        SELECT id, name, type, description, avatar_url, banner_url, location_id 
+        FROM organizations 
+        WHERE id = :org_id
+    """), {"org_id": org_id}).fetchone()
+    
+    if not org:
+        raise HTTPException(status_code=404, detail="Organização não encontrada")
+        
+    # Get members
+    members_res = db.execute(text("""
+        SELECT m.user_id, COALESCE(up.display_name, u.email) as name, up.avatar_url, m.role, m.can_manage_events
+        FROM organization_members m
+        JOIN users u ON m.user_id = u.id
+        LEFT JOIN user_profiles up ON u.email = up.email
+        WHERE m.organization_id = :org_id
+    """), {"org_id": org_id}).fetchall()
+    
+    members = [{
+        "user_id": r[0],
+        "name": r[1],
+        "avatar_url": r[2] or f"https://ui-avatars.com/api/?name={r[1]}",
+        "role": r[3],
+        "can_manage_events": bool(r[4])
+    } for r in members_res]
+    
+    return {
+        "id": org[0],
+        "name": org[1],
+        "type": org[2],
+        "description": org[3],
+        "avatar_url": org[4] or f"https://ui-avatars.com/api/?name={org[1]}&background=random",
+        "banner_url": org[5] or "https://via.placeholder.com/800x200?text=Sem+Banner",
+        "location_id": org[6],
+        "members": members
+    }
+
+@app.get("/organizations/{org_id}/members/{user_id}/permissions")
+async def get_org_member_permissions(org_id: int, user_id: int, db: Session = Depends(get_db)):
+    row = db.execute(text("""
+        SELECT can_manage_events, role 
+        FROM organization_members 
+        WHERE organization_id = :org_id AND user_id = :user_id
+    """), {"org_id": org_id, "user_id": user_id}).fetchone()
+    
+    if not row:
+        return {"can_manage_events": False, "role": None}
+        
+    return {"can_manage_events": bool(row[0]) or row[1] in ('President', 'Admin', 'Presidente', 'Administrador'), "role": row[1]}

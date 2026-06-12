@@ -61,6 +61,14 @@ async def create_post(
             shutil.copyfileobj(video.file, buffer)
         video_url = f"/api/uploads/{filename}"
 
+    if organization_id:
+        member = db.execute(
+            text("SELECT 1 FROM organization_members WHERE organization_id = :o AND user_id = :u"),
+            {"o": organization_id, "u": user_id}
+        ).fetchone()
+        if not member:
+            raise HTTPException(status_code=403, detail="Não és membro desta organização para publicar em nome dela")
+
     try:
         db.execute(
             text("INSERT INTO posts (user_id, content, image_url, video_url, organization_id) VALUES (:u, :c, :i, :v, :o)"),

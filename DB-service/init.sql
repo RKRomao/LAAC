@@ -97,6 +97,8 @@ CREATE TABLE organizations (
   description TEXT,
   location_id INT,
   creation_date DATE,
+  avatar_url VARCHAR(255),
+  banner_url VARCHAR(255),
   FOREIGN KEY (location_id) REFERENCES locations(id)
 );
 
@@ -118,9 +120,12 @@ CREATE TABLE posts (
   user_id INT NOT NULL,
   content TEXT NOT NULL,
   image_url VARCHAR(255),
+  video_url VARCHAR(255),
+  organization_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (organization_id) REFERENCES organizations(id)
 );
 
 CREATE TABLE post_comments (
@@ -263,3 +268,50 @@ INSERT INTO roles (role_name, description, permissions) VALUES
 ('LAAC-staff:Response-team', 'Equipa de resposta a emergências', '["view_admin", "manage_emergencies"]'),
 ('aluno', 'Estudante UBI', '[]'),
 ('funcionarios-ubi', 'Funcionários da universidade', '[]');
+
+-- --- CHALLENGES ---
+
+CREATE TABLE IF NOT EXISTS challenges (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  prize VARCHAR(255) NOT NULL,
+  start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  end_date TIMESTAMP NOT NULL,
+  status VARCHAR(50) DEFAULT 'active', -- 'active', 'ended'
+  winner_id INT NULL,
+  winner_name VARCHAR(255) NULL,
+  winner_photo_url VARCHAR(255) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS challenge_submissions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  challenge_id INT NOT NULL,
+  user_id INT NOT NULL,
+  user_email VARCHAR(255) NOT NULL,
+  photo_url VARCHAR(255) NOT NULL,
+  caption TEXT,
+  status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'approved', 'rejected', 'winner'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- --- SEED DATA ---
+INSERT INTO locations (id, building, floor, room_code, description) VALUES (999, 'Polo I', 'Piso 0', 'DEP-EI', 'Departamento de Engenharia Informática') ON DUPLICATE KEY UPDATE id=id;
+
+INSERT INTO users (id, email, password_hash, role) VALUES (9999, 'admin@laac.pt', '$2b$12$R9h/lIPzMRFhBp1v86cEJuK.u8U1KEC93RkL/nUXBq1.O0Q6p2n/G', 'admin') ON DUPLICATE KEY UPDATE id=id;
+
+INSERT INTO organizations (id, name, type, description, location_id, creation_date, avatar_url, banner_url) VALUES 
+(1, 'AAUBI', 'aaubi', 'Associação Académica da Universidade da Beira Interior. Representamos todos os alunos da UBI.', 999, '2026-01-01', 'https://ui-avatars.com/api/?name=AAUBI&background=0D9488&color=fff', 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=60'),
+(2, 'NEI', 'nucleo', 'Núcleo de Engenharia Informática da UBI. Organização de workshops, palestras e atividades de integração.', 999, '2026-01-01', 'https://ui-avatars.com/api/?name=NEI&background=2563EB&color=fff', 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=60'),
+(3, 'NUBI', 'nucleo', 'Núcleo de Bioengenharia da UBI. Conectamos estudantes e promovemos a investigação em bioengenharia.', 999, '2026-01-01', 'https://ui-avatars.com/api/?name=NUBI&background=16A34A&color=fff', 'https://images.unsplash.com/photo-1532187643603-ba119ca4109e?w=800&auto=format&fit=crop&q=60')
+ON DUPLICATE KEY UPDATE id=id;
+
+INSERT INTO organization_members (organization_id, user_id, role, can_manage_events) VALUES
+(1, 9999, 'Presidente', 1),
+(2, 9999, 'Administrador', 1)
+ON DUPLICATE KEY UPDATE id=id;
+
+

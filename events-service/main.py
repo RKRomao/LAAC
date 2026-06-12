@@ -6,12 +6,13 @@ from datetime import datetime
 app = FastAPI(title="LAAC Events Service")
 
 class Event(BaseModel):
-    id: int
+    id: Optional[int] = None
     title: str
     description: str
     date: str
     location: str
     category: str
+    organization_id: Optional[int] = None
 
 # Dados iniciais de eventos académicos da UBI
 events_db = [
@@ -66,16 +67,20 @@ events_db = [
 ]
 
 @app.get("/events", response_model=List[Event])
-async def get_events(category: Optional[str] = None):
+async def get_events(category: Optional[str] = None, organization_id: Optional[int] = None):
+    result = events_db
     if category:
-        filtered = [e for e in events_db if e["category"].lower() == category.lower()]
-        return filtered
-    return events_db
+        result = [e for e in result if e.get("category", "").lower() == category.lower()]
+    if organization_id is not None:
+        result = [e for e in result if e.get("organization_id") == organization_id]
+    return result
 
 @app.post("/events", response_model=Event)
 async def create_event(event: Event):
     # Validar se o ID já existe
-    if any(e["id"] == event.id for e in events_db):
+    if event.id is None:
+        event.id = max([e["id"] for e in events_db]) + 1 if events_db else 1
+    elif any(e["id"] == event.id for e in events_db):
         raise HTTPException(status_code=400, detail="Evento com esse ID já existe.")
     
     new_event = event.dict()

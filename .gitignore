@@ -42,3 +42,19 @@ Thumbs.db
 backups/
 scratch/
 test_report.md
+
+# LaTeX auxiliary/compilation files
+*.aux
+*.fdb_latexmk
+*.fls
+*.pdf
+*.synctex.gz
+*.toc
+*.out
+*.lof
+*.lot
+*.bbl
+*.blg
+*.run.xml
+*.bcf
+

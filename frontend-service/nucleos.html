@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Espaço de Núcleos</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="nucleos.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon16x16.png">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar glass">
+        <div class="nav-content">
+            <div class="logo logo-img" onclick="window.location.href='index.html'" style="cursor: pointer;"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC UBI" style="height: 35px;"></div>
+            <div class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="map.html">Mapa</a>
+                <a href="social.html">Social</a>
+                <a href="challenges.html">Desafios</a>
+                <a href="nucleos.html" class="active">Núcleos</a>
+                <a href="report.html">Suporte</a>
+                <a href="profile.html">Perfil</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="nucleos-container">
+        
+        <!-- Header Section -->
+        <header class="nucleos-header">
+            <h1 class="gradient-text">Espaço de Núcleos</h1>
+            <p class="subtitle text-muted">Explora as organizações estudantis da UBI. Vê eventos programados, publicações oficiais e acompanha as atividades do teu núcleo.</p>
+        </header>
+
+        <!-- Search / Filter -->
+        <div class="search-bar-container glass">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="search-org" placeholder="Procurar núcleo por nome ou sigla..." oninput="filterOrganizations()">
+            </div>
+            <select id="filter-type" class="glass" onchange="filterOrganizations()">
+                <option value="">Todos os tipos</option>
+                <option value="nucleo">Núcleos de Estudantes</option>
+                <option value="aaubi">AAUBI</option>
+            </select>
+        </div>
+
+        <!-- Organizations Grid -->
+        <section class="nucleos-section">
+            <div class="nucleos-grid" id="organizations-grid">
+                <!-- Org cards will be injected here -->
+                <div class="text-muted text-center" style="grid-column: 1/-1; padding: 5rem;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 1rem;">A carregar organizações...</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Organization Detail Modal -->
+    <div class="modal-overlay" id="org-modal">
+        <div class="modal-content glass org-modal-content">
+            <button class="btn-close modal-close-btn" onclick="closeOrgModal()"><i class="fas fa-times"></i></button>
+            
+            <!-- Org Profile Header -->
+            <div class="org-profile-header">
+                <div class="org-banner-container">
+                    <img id="org-banner" src="https://via.placeholder.com/800x200" alt="Banner do Núcleo">
+                </div>
+                <div class="org-meta-wrapper">
+                    <img id="org-avatar" src="https://ui-avatars.com/api/?name=Org" alt="Logo do Núcleo" class="org-avatar-logo">
+                    <div class="org-meta-info">
+                        <div class="org-title-row">
+                            <h2 id="org-name">Nome do Núcleo</h2>
+                            <span id="org-badge" class="org-badge">nucleo</span>
+                        </div>
+                        <p id="org-description" class="text-muted">Breve descrição da organização académica...</p>
+                    </div>
+                    <div class="org-actions-wrapper">
+                        <button id="btn-follow-org" class="btn-primary" onclick="toggleFollowOrg()">
+                            <i class="fas fa-plus"></i> Seguir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Org Profile Navigation Tabs -->
+            <div class="org-tabs">
+                <button class="org-tab active" onclick="switchTab('eventos')"><i class="fas fa-calendar-alt"></i> Eventos</button>
+                <button class="org-tab" onclick="switchTab('posts')"><i class="fas fa-comment-alt"></i> Publicações</button>
+                <button class="org-tab" onclick="switchTab('membros')"><i class="fas fa-users"></i> Membros</button>
+                <button id="tab-manage" class="org-tab" style="display: none;" onclick="switchTab('gerir')"><i class="fas fa-cog"></i> Gerir</button>
+            </div>
+
+            <!-- Tabs Content -->
+            <div class="org-tab-content">
+                
+                <!-- Events Tab -->
+                <div id="tab-content-eventos" class="tab-pane active">
+                    <div class="events-list-container" id="org-events-list">
+                        <!-- Events injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Posts Tab -->
+                <div id="tab-content-posts" class="tab-pane">
+                    <div class="posts-list-container" id="org-posts-list">
+                        <!-- Posts injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Members Tab -->
+                <div id="tab-content-membros" class="tab-pane">
+                    <div class="members-grid" id="org-members-list">
+                        <!-- Members injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Manage Tab (Visible to managers only) -->
+                <div id="tab-content-gerir" class="tab-pane">
+                    <div class="manage-grid">
+                        
+                        <!-- Create Event Panel -->
+                        <div class="manage-card glass">
+                            <h3><i class="fas fa-calendar-plus"></i> Criar Novo Evento</h3>
+                            <form id="create-event-form" onsubmit="submitOrgEvent(event)">
+                                <div class="form-group">
+                                    <label for="event-title">Título do Evento</label>
+                                    <input type="text" id="event-title" class="auth-input" placeholder="Ex: Workshop de Python" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="event-desc">Descrição do Evento</label>
+                                    <textarea id="event-desc" class="auth-input" style="height: 80px; padding-top: 8px; resize: none;" placeholder="Tema, detalhes e atividades..." required></textarea>
+                                </div>
+                                <div class="form-group-row">
+                                    <div class="form-group">
+                                        <label for="event-date">Data & Hora</label>
+                                        <input type="datetime-local" id="event-date" class="auth-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="event-category">Categoria</label>
+                                        <select id="event-category" class="auth-input" required>
+                                            <option value="Académico">Académico</option>
+                                            <option value="Tradição">Tradição</option>
+                                            <option value="Desporto">Desporto</option>
+                                            <option value="Formação">Formação</option>
+                                            <option value="Geral">Geral</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="event-location">Localização</label>
+                                    <input type="text" id="event-location" class="auth-input" placeholder="Ex: Anfiteatro Polo I" required>
+                                </div>
+                                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" id="btn-submit-event">
+                                    <i class="fas fa-paper-plane"></i> Criar Evento
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Publish Social Post Panel -->
+                        <div class="manage-card glass">
+                            <h3><i class="fas fa-paper-plane"></i> Publicar em nome do Núcleo</h3>
+                            <form id="org-post-form" onsubmit="submitOrgSocialPost(event)">
+                                <div class="form-group">
+                                    <label for="org-post-content">Texto da Publicação</label>
+                                    <textarea id="org-post-content" class="auth-input" style="height: 120px; padding-top: 8px; resize: none;" placeholder="Novidades do núcleo para a comunidade..." required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Imagem / Vídeo (Opcional)</label>
+                                    <div class="file-upload-zone" onclick="document.getElementById('org-post-media').click()">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <p>Carregar Média</p>
+                                        <span id="post-media-label" class="text-muted" style="font-size: 0.8rem;">Imagens ou vídeos suportados</span>
+                                        <input type="file" id="org-post-media" accept="image/*,video/*" style="display: none;" onchange="handlePostMediaSelect()">
+                                    </div>
+                                    <div id="post-media-preview-container" style="display: none; margin-top: 1rem; text-align: center;">
+                                        <img id="post-media-preview-img" class="upload-preview" alt="Média Preview" style="max-height: 120px; border-radius: 8px;">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" id="btn-submit-org-post">
+                                    <i class="fas fa-share-square"></i> Publicar no Feed
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="logo logo-img"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC" style="height: 25px;"></div>
+        <div class="footer-links">
+            <a href="#">Privacidade</a>
+            <a href="#">Termos</a>
+            <a href="report.html" class="btn-report-bug"><i class="fa-solid fa-bug"></i> Reportar Problema</a>
+        </div>
+        <p class="text-muted">&copy; 2026 LAAC UBI. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        let organizationsList = [];
+        let selectedOrg = null;
+        let laacUserId = localStorage.getItem('laac_user_id');
+        let laacUserEmail = localStorage.getItem('laac_user_email');
+        let followedOrgs = JSON.parse(localStorage.getItem('followed_orgs') || '[]');
+
+        window.onload = async function() {
+            if (!laacUserId) {
+                // If user id is not in localStorage, query profile service first
+                if (laacUserEmail) {
+                    try {
+                        const resp = await fetch(`/api/profiles/${laacUserEmail}`);
+                        if (resp.ok) {
+                            const profile = await resp.json();
+                            laacUserId = profile.id;
+                            localStorage.setItem('laac_user_id', laacUserId);
+                        }
+                    } catch (e) {
+                        console.error('Erro ao ir buscar id do utilizador', e);
+                    }
+                }
+            }
+            await loadOrganizations();
+        };
+
+        async function loadOrganizations() {
+            try {
+                const response = await fetch('/api/organizations');
+                if (!response.ok) throw new Error("Erro ao carregar organizações");
+                organizationsList = await response.json();
+                renderOrganizations(organizationsList);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('organizations-grid').innerHTML = 
+                    `<p class="text-muted text-center" style="grid-column: 1/-1; padding: 2rem;">Erro ao ligar ao serviço de perfis. Tente mais tarde.</p>`;
+            }
+        }
+
+        function renderOrganizations(list) {
+            const grid = document.getElementById('organizations-grid');
+            if (list.length === 0) {
+                grid.innerHTML = '<p class="text-muted text-center" style="grid-column:1/-1; padding: 3rem;">Nenhuma organização encontrada.</p>';
+                return;
+            }
+
+            grid.innerHTML = list.map(org => {
+                const isFollowing = followedOrgs.includes(org.id);
+                return `
+                    <div class="org-card glass" onclick="openOrgDetails(${org.id})">
+                        <div class="org-card-banner">
+                            <img src="${org.banner_url}" alt="Banner">
+                        </div>
+                        <div class="org-card-content">
+                            <div class="org-card-avatar-wrapper">
+                                <img src="${org.avatar_url}" alt="Logo">
+                            </div>
+                            <div class="org-card-info">
+                                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                    <h3>${org.name}</h3>
+                                    <span class="org-type-badge">${org.type}</span>
+                                </div>
+                                <p class="org-desc text-muted">${org.description || 'Sem descrição disponível.'}</p>
+                            </div>
+                            <div class="org-card-footer">
+                                <span class="follow-badge ${isFollowing ? 'following' : ''}">
+                                    <i class="fas ${isFollowing ? 'fa-check' : 'fa-plus'}"></i> ${isFollowing ? 'A Seguir' : 'Seguir'}
+                                </span>
+                                <button class="btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 1rem;">Ver Página</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterOrganizations() {
+            const query = document.getElementById('search-org').value.toLowerCase();
+            const type = document.getElementById('filter-type').value;
+
+            let filtered = organizationsList;
+            if (query) {
+                filtered = filtered.filter(org => 
+                    org.name.toLowerCase().includes(query) || 
+                    (org.description && org.description.toLowerCase().includes(query))
+                );
+            }
+            if (type) {
+                filtered = filtered.filter(org => org.type === type);
+            }
+            renderOrganizations(filtered);
+        }
+
+        async function openOrgDetails(orgId) {
+            try {
+                const response = await fetch(`/api/organizations/${orgId}`);
+                if (!response.ok) throw new Error("Erro ao obter dados da organização");
+                selectedOrg = await response.json();
+
+                // Populate UI
+                document.getElementById('org-banner').src = selectedOrg.banner_url;
+                document.getElementById('org-avatar').src = selectedOrg.avatar_url;
+                document.getElementById('org-name').innerText = selectedOrg.name;
+                document.getElementById('org-badge').innerText = selectedOrg.type;
+                document.getElementById('org-description').innerText = selectedOrg.description || 'Sem descrição disponível.';
+
+                // Update follow button
+                const isFollowing = followedOrgs.includes(selectedOrg.id);
+                updateFollowButtonState(isFollowing);
+
+                // Check management permissions
+                const tabManage = document.getElementById('tab-manage');
+                tabManage.style.display = 'none'; // Default hidden
+
+                if (laacUserId) {
+                    try {
+                        const permResp = await fetch(`/api/organizations/${orgId}/members/${laacUserId}/permissions`);
+                        if (permResp.ok) {
+                            const perms = await permResp.json();
+                            if (perms.can_manage_events) {
+                                tabManage.style.display = 'block';
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Erro a ler permissões do núcleo", e);
+                    }
+                }
+
+                // Default active tab: eventos
+                switchTab('eventos');
+
+                // Open Modal
+                document.getElementById('org-modal').classList.add('active');
+
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao abrir detalhes da organização.");
+            }
+        }
+
+        function closeOrgModal() {
+            document.getElementById('org-modal').classList.remove('active');
+            selectedOrg = null;
+        }
+
+        function updateFollowButtonState(isFollowing) {
+            const btn = document.getElementById('btn-follow-org');
+            if (isFollowing) {
+                btn.className = 'btn-secondary following';
+                btn.innerHTML = '<i class="fas fa-check"></i> A Seguir';
+            } else {
+                btn.className = 'btn-primary';
+                btn.innerHTML = '<i class="fas fa-plus"></i> Seguir';
+            }
+        }
+
+        function toggleFollowOrg() {
+            if (!selectedOrg) return;
+            const index = followedOrgs.indexOf(selectedOrg.id);
+            let isFollowing = false;
+            if (index > -1) {
+                followedOrgs.splice(index, 1);
+            } else {
+                followedOrgs.push(selectedOrg.id);
+                isFollowing = true;
+            }
+            localStorage.setItem('followed_orgs', JSON.stringify(followedOrgs));
+            updateFollowButtonState(isFollowing);
+            
+            // Refresh directory list cards follow badge
+            filterOrganizations();
+        }
+
+        function switchTab(tabName) {
+            // Remove active classes
+            const tabs = document.querySelectorAll('.org-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+
+            const panes = document.querySelectorAll('.tab-pane');
+            panes.forEach(p => p.classList.remove('active'));
+
+            // Set active tab button
+            const activeTabBtn = Array.from(tabs).find(t => t.innerText.toLowerCase().includes(tabName.toLowerCase()) || (tabName === 'gerir' && t.id === 'tab-manage'));
+            if (activeTabBtn) activeTabBtn.classList.add('active');
+
+            // Set active pane
+            const activePane = document.getElementById(`tab-content-${tabName}`);
+            if (activePane) activePane.classList.add('active');
+
+            // Load data accordingly
+            if (tabName === 'eventos') {
+                loadOrgEvents();
+            } else if (tabName === 'posts') {
+                loadOrgPosts();
+            } else if (tabName === 'membros') {
+                loadOrgMembers();
+            }
+        }
+
+        async function loadOrgEvents() {
+            const container = document.getElementById('org-events-list');
+            container.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> A carregar eventos...</div>';
+
+            try {
+                const resp = await fetch(`/api/events?organization_id=${selectedOrg.id}`);
+                const events = await resp.json();
+
+                if (events.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center" style="padding: 2rem;">Não existem eventos agendados por este núcleo.</p>';
+                    return;
+                }
+
+                container.innerHTML = events.map(e => `
+                    <div class="org-event-item glass">
+                        <div class="event-meta">
+                            <span class="event-category-badge">${e.category}</span>
+                            <span class="event-date-text"><i class="far fa-calendar-alt"></i> ${e.date}</span>
+                        </div>
+                        <h3>${e.title}</h3>
+                        <p class="text-muted">${e.description}</p>
+                        <div class="event-location-text"><i class="fas fa-map-marker-alt"></i> ${e.location}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="text-muted text-center">Erro ao carregar eventos.</p>';
+            }
+        }
+
+        async function loadOrgPosts() {
+            const container = document.getElementById('org-posts-list');
+            container.innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> A carregar publicações...</div>';
+
+            try {
+                const resp = await fetch('/api/feed');
+                const posts = await resp.json();
+                
+                // Filter posts of this organization
+                const orgPosts = posts.filter(p => p.organization === selectedOrg.name);
+
+                if (orgPosts.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center" style="padding: 2rem;">Este núcleo ainda não fez nenhuma publicação.</p>';
+                    return;
+                }
+
+                container.innerHTML = orgPosts.map(p => {
+                    let mediaHtml = '';
+                    if (p.video_url) {
+                        mediaHtml = `<video controls class="feed-image"><source src="${p.video_url}" type="video/mp4"></video>`;
+                    } else if (p.image_url) {
+                        mediaHtml = `<img src="${p.image_url}" class="feed-image">`;
+                    }
+
+                    return `
+                        <div class="org-post-item glass">
+                            <div class="post-header">
+                                <img src="${selectedOrg.avatar_url}" class="post-avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                                <div>
+                                    <h4 style="margin: 0; color: white;">${selectedOrg.name}</h4>
+                                    <span style="font-size: 0.75rem;" class="text-muted">${new Date(p.created_at).toLocaleString('pt-PT')}</span>
+                                </div>
+                            </div>
+                            <div class="post-content" style="margin-top: 1rem;">
+                                <p>${p.content}</p>
+                                ${mediaHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="text-muted text-center">Erro ao carregar publicações.</p>';
+            }
+        }
+
+        function loadOrgMembers() {
+            const container = document.getElementById('org-members-list');
+            if (!selectedOrg.members || selectedOrg.members.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center" style="grid-column: 1/-1;">Nenhum membro listado.</p>';
+                return;
+            }
+
+            container.innerHTML = selectedOrg.members.map(m => `
+                <div class="member-card glass">
+                    <img src="${m.avatar_url}" alt="Avatar">
+                    <h4>${m.name}</h4>
+                    <span class="member-role">${m.role}</span>
+                </div>
+            `).join('');
+        }
+
+        async function submitOrgEvent(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-event');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A processar...';
+
+            const title = document.getElementById('event-title').value;
+            const description = document.getElementById('event-desc').value;
+            const dateRaw = document.getElementById('event-date').value;
+            const category = document.getElementById('event-category').value;
+            const location = document.getElementById('event-location').value;
+
+            // Formatar data local
+            const date = dateRaw.replace('T', ' ');
+
+            const payload = {
+                title,
+                description,
+                date,
+                category,
+                location,
+                organization_id: selectedOrg.id,
+                user_id: laacUserId
+            };
+
+            try {
+                const resp = await fetch('/api/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (resp.ok) {
+                    alert('Evento criado com sucesso!');
+                    document.getElementById('create-event-form').reset();
+                    switchTab('eventos');
+                } else {
+                    const data = await resp.json();
+                    alert(data.detail || 'Erro ao criar evento.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao comunicar com o servidor.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Criar Evento';
+            }
+        }
+
+        function handlePostMediaSelect() {
+            const input = document.getElementById('org-post-media');
+            const previewContainer = document.getElementById('post-media-preview-container');
+            const previewImg = document.getElementById('post-media-preview-img');
+            const label = document.getElementById('post-media-label');
+
+            const file = input.files[0];
+            if (file) {
+                label.innerText = `Selecionado: ${file.name}`;
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewImg.src = e.target.result;
+                        previewContainer.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // It is a video
+                    previewImg.src = 'https://cdn-icons-png.flaticon.com/512/3204/3204323.png'; // video placeholder icon
+                    previewContainer.style.display = 'block';
+                }
+            }
+        }
+
+        async function submitOrgSocialPost(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-org-post');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A publicar...';
+
+            const content = document.getElementById('org-post-content').value;
+            const fileInput = document.getElementById('org-post-media');
+            const file = fileInput.files[0];
+
+            const formData = new FormData();
+            formData.append('user_id', laacUserId);
+            formData.append('content', content);
+            formData.append('organization_id', selectedOrg.id);
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    formData.append('image', file);
+                } else {
+                    formData.append('video', file);
+                }
+            }
+
+            try {
+                const resp = await fetch('/api/posts', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (resp.ok) {
+                    alert('Publicação enviada para o feed social!');
+                    document.getElementById('org-post-form').reset();
+                    document.getElementById('post-media-preview-container').style.display = 'none';
+                    document.getElementById('post-media-label').innerText = 'Imagens ou vídeos suportados';
+                    switchTab('posts');
+                } else {
+                    const data = await resp.json();
+                    alert(data.detail || 'Erro ao criar publicação.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao ligar ao servidor.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-share-square"></i> Publicar no Feed';
+            }
+        }
+    </script>
+</body>
+</html>

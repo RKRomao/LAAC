@@ -36,6 +36,7 @@ TICKET_SERVICE_URL = os.getenv("TICKET_SERVICE_URL", "http://ticket-service:8016
 CHATBOT_SERVICE_URL = os.getenv("CHATBOT_SERVICE_URL", "http://chatbot-service:8009")
 EVENTS_SERVICE_URL = os.getenv("EVENTS_SERVICE_URL", "http://events-service:8014")
 NEWS_SERVICE_URL = os.getenv("NEWS_SERVICE_URL", "http://news-service:8015")
+CHALLENGE_SERVICE_URL = os.getenv("CHALLENGE_SERVICE_URL", "http://challenge-service:8017")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -97,18 +98,54 @@ async def bot_message(data: dict):
         return response.json()
 
 @app.get("/events")
-async def get_events(category: Optional[str] = None):
+async def get_events(category: Optional[str] = None, organization_id: Optional[int] = None):
     async with httpx.AsyncClient() as client:
         params = {}
         if category:
             params["category"] = category
+        if organization_id is not None:
+            params["organization_id"] = organization_id
         response = await client.get(f"{EVENTS_SERVICE_URL}/events", params=params)
         return response.json()
 
 @app.post("/events")
 async def create_event(data: dict):
+    org_id = data.get("organization_id")
+    user_id = data.get("user_id")
+    
+    if org_id is not None:
+        if not user_id:
+            raise HTTPException(status_code=400, detail="User ID é obrigatório para criar evento de núcleo")
+        
+        # Check permissions via profile-service
+        async with httpx.AsyncClient() as client:
+            perm_resp = await client.get(f"{PROFILE_SERVICE_URL}/organizations/{org_id}/members/{user_id}/permissions")
+            if perm_resp.status_code != 200 or not perm_resp.json().get("can_manage_events"):
+                raise HTTPException(status_code=403, detail="Não tens permissão para gerir eventos deste núcleo")
+                
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{EVENTS_SERVICE_URL}/events", json=data)
+        return response.json()
+
+@app.get("/organizations")
+async def get_organizations(type: Optional[str] = None):
+    async with httpx.AsyncClient() as client:
+        params = {}
+        if type:
+            params["type"] = type
+        response = await client.get(f"{PROFILE_SERVICE_URL}/organizations", params=params)
+        return response.json()
+
+@app.get("/organizations/{org_id}")
+async def get_organization_details(org_id: int):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{PROFILE_SERVICE_URL}/organizations/{org_id}")
+        return response.json()
+
+@app.get("/organizations/{org_id}/members/{user_id}/permissions")
+async def get_org_member_permissions(org_id: int, user_id: int):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{PROFILE_SERVICE_URL}/organizations/{org_id}/members/{user_id}/permissions")
         return response.json()
 
 @app.get("/faqs")
@@ -510,3 +547,63 @@ async def check_following(user_id: int, target_id: int):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{PROFILE_SERVICE_URL}/profiles/{user_id}/is_following/{target_id}")
         return response.json()
+
+# Challenge Proxy Routes
+@app.get("/challenges")
+async def get_challenges():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{CHALLENGE_SERVICE_URL}/challenges")
+        return response.json()
+
+@app.get("/challenges/{challenge_id}")
+async def get_challenge_details(challenge_id: int):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{CHALLENGE_SERVICE_URL}/challenges/{challenge_id}")
+        return response.json()
+
+@app.post("/challenges")
+async def create_new_challenge(data: dict):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{CHALLENGE_SERVICE_URL}/challenges", json=data)
+        return response.json()
+
+@app.post("/challenges/{challenge_id}/submit")
+async def submit_challenge_photo(
+    challenge_id: int,
+    user_id: int = Form(...),
+    user_email: str = Form(...),
+    caption: str = Form(""),
+    image: UploadFile = File(...)
+):
+    async with httpx.AsyncClient() as client:
+        files = {"image": (image.filename, await image.read(), image.content_type)}
+        data = {
+            "user_id": user_id,
+            "user_email": user_email,
+            "caption": caption
+        }
+        response = await client.post(
+            f"{CHALLENGE_SERVICE_URL}/challenges/{challenge_id}/submit",
+            data=data,
+            files=files
+        )
+        return response.json()
+
+@app.get("/challenges/{challenge_id}/submissions")
+async def list_challenge_submissions(challenge_id: int, role: str = "aluno"):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{CHALLENGE_SERVICE_URL}/challenges/{challenge_id}/submissions", params={"role": role})
+        return response.json()
+
+@app.post("/submissions/{submission_id}/evaluate")
+async def evaluate_submission(submission_id: int, data: dict):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{CHALLENGE_SERVICE_URL}/submissions/{submission_id}/evaluate", json=data)
+        return response.json()
+
+@app.get("/challenge-static/uploads/{filename}")
+async def serve_challenge_upload(filename: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{CHALLENGE_SERVICE_URL}/uploads/{filename}")
+        from fastapi.responses import Response
+        return Response(content=response.content, media_type=response.headers.get("content-type"))

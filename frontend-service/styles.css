@@ -79,6 +79,14 @@ body::before {
     -webkit-text-fill-color: transparent;
 }
 
+.logo.logo-img {
+    background: none;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    display: flex;
+    align-items: center;
+}
+
 .nav-links {
     display: flex;
     gap: 2rem;

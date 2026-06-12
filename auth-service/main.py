@@ -87,7 +87,7 @@ async def login(user: UserAuth, db: Session = Depends(get_db)):
     if user.email == "admin@laac.pt" and user.password == "admin123":
         await send_log("admin_login", "admin@laac.pt", "Acesso ao painel administrativo")
         token = create_access_token({"sub": "admin@laac.pt", "role": "admin"})
-        return {"access_token": token, "token_type": "bearer", "role": "admin"}
+        return {"access_token": token, "token_type": "bearer", "role": "admin", "user_id": 9999}
 
     row = db.execute(text("SELECT id, password_hash, role FROM users WHERE email = :email"), {"email": user.email}).fetchone()
     if not row or not pwd_context.verify(user.password, row[1]):

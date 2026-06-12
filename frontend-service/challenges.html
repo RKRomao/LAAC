@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAAC - Desafios Fotográficos</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="challenges.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon16x16.png">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar glass">
+        <div class="nav-content">
+            <div class="logo logo-img" onclick="window.location.href='index.html'" style="cursor: pointer;"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC UBI" style="height: 35px;"></div>
+            <div class="nav-links">
+                <a href="index.html">Dashboard</a>
+                <a href="map.html">Mapa</a>
+                <a href="social.html">Social</a>
+                <a href="challenges.html" class="active">Desafios</a>
+                <a href="nucleos.html">Núcleos</a>
+                <a href="report.html">Suporte</a>
+                <a href="profile.html">Perfil</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="challenge-container">
+        
+        <!-- Header Section -->
+        <header class="challenge-header">
+            <h1 class="gradient-text">Desafios Fotográficos</h1>
+            <p class="subtitle text-muted">Solta o teu lado artístico! Tira fotos originais dos cantos e recantos da UBI, submete e habilita-te a prémios brutais.</p>
+        </header>
+
+        <!-- Active Challenges Grid -->
+        <section class="challenge-section">
+            <div class="section-title-wrapper">
+                <i class="fa-solid fa-fire icon-active"></i>
+                <h2>Desafios a Decorrer</h2>
+            </div>
+            <div class="challenges-grid" id="active-challenges-grid">
+                <!-- Active challenges injected by JS -->
+                <div class="text-muted text-center" style="grid-column: 1/-1; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 1rem;">A carregar desafios ativos...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Winners Showcase Section -->
+        <section class="challenge-section">
+            <div class="section-title-wrapper">
+                <i class="fa-solid fa-trophy icon-winner"></i>
+                <h2>Galeria de Vencedores</h2>
+            </div>
+            <div class="winners-grid" id="past-challenges-grid">
+                <!-- Past challenges/winners injected by JS -->
+                <div class="text-muted text-center" style="grid-column: 1/-1; padding: 3rem;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p style="margin-top: 1rem;">A carregar galeria de vencedores...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAACcrew Control Panel (Dynamic based on role) -->
+        <section class="challenge-section admin-panel glass" id="crew-panel" style="display: none;">
+            <div class="admin-header">
+                <div class="section-title-wrapper">
+                    <i class="fa-solid fa-user-shield icon-admin"></i>
+                    <h2>Painel de Controlo LAACcrew</h2>
+                </div>
+                <span class="admin-badge">Staff Access</span>
+            </div>
+
+            <div class="admin-grid">
+                <!-- Create Challenge Form -->
+                <div class="admin-card glass">
+                    <h3>Criar Novo Desafio</h3>
+                    <form id="create-challenge-form" onsubmit="createNewChallenge(event)">
+                        <div class="form-group">
+                            <label for="chal-title">Título do Desafio</label>
+                            <input type="text" id="chal-title" class="auth-input" placeholder="Ex: Outono na UBI" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="chal-desc">Descrição / Requisitos</label>
+                            <textarea id="chal-desc" class="auth-input" style="height: 100px; padding-top: 10px; resize: none;" placeholder="Descreve o tema e regras..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="chal-prize">Prémio do Concurso (Realista)</label>
+                            <input type="text" id="chal-prize" class="auth-input" placeholder="Ex: Vale de Compras Fnac de 50€" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="chal-end">Data de Fim</label>
+                            <input type="datetime-local" id="chal-end" class="auth-input" required>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">
+                            <i class="fa-solid fa-plus"></i> Publicar Desafio
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Review Submissions Panel -->
+                <div class="admin-card glass">
+                    <h3>Avaliar Submissões</h3>
+                    <div class="form-group">
+                        <label for="review-challenge-select">Selecionar Desafio Ativo</label>
+                        <select id="review-challenge-select" class="auth-input" onchange="loadSubmissionsForReview()">
+                            <option value="">-- Selecione um desafio --</option>
+                        </select>
+                    </div>
+                    <div class="submissions-review-list" id="submissions-review-list">
+                        <p class="text-muted text-center" style="padding: 2rem;">Selecione um desafio para rever as participações.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Submit Photo Modal Overlay -->
+    <div class="modal-overlay" id="submit-modal">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3>Submeter Fotografia Artística</h3>
+                <button class="btn-close" onclick="closeSubmitModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="submit-photo-form" onsubmit="submitPhotoEntry(event)">
+                <input type="hidden" id="submit-challenge-id">
+                
+                <div class="form-group">
+                    <label>Fotografia Artística</label>
+                    <div class="file-upload-zone" onclick="document.getElementById('photo-file-input').click()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Clica aqui para carregar a tua foto artística</p>
+                        <span id="file-name-label" class="text-muted" style="font-size: 0.8rem;">Formatos suportados: PNG, JPG, JPEG</span>
+                        <input type="file" id="photo-file-input" accept="image/*" style="display: none;" onchange="handleFileSelect()" required>
+                    </div>
+                    <div id="upload-preview-container" style="display: none; margin-top: 1rem; text-align: center;">
+                        <img id="upload-preview-img" class="upload-preview" alt="Antevisão da foto">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="submit-caption">Legenda / Conceito da Foto</label>
+                    <textarea id="submit-caption" class="auth-input" style="height: 80px; padding-top: 8px; resize: none;" placeholder="Conta-nos um pouco sobre a ideia artística por trás da foto..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" id="btn-submit-entry">
+                    <i class="fa-solid fa-paper-plane"></i> Submeter Candidatura
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Submissions Viewer Modal for Students -->
+    <div class="modal-overlay" id="view-submissions-modal">
+        <div class="modal-content glass" style="max-width: 800px; width: 90%;">
+            <div class="modal-header">
+                <h3 id="submissions-viewer-title">Submissões Aprovadas</h3>
+                <button class="btn-close" onclick="closeSubmissionsViewer()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="submissions-viewer-grid" id="submissions-viewer-grid">
+                <!-- Submissions list injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="logo logo-img"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC" style="height: 25px;"></div>
+        <div class="footer-links">
+            <a href="#">Privacidade</a>
+            <a href="#">Termos</a>
+            <a href="report.html" class="btn-report-bug"><i class="fa-solid fa-bug"></i> Reportar Problema</a>
+        </div>
+        <p class="text-muted">&copy; 2026 LAAC UBI. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        let challengesList = [];
+        let laacRole = localStorage.getItem('laac_role') || 'aluno';
+        let laacUserId = localStorage.getItem('laac_user_id');
+        let laacUserEmail = localStorage.getItem('laac_user_email');
+
+        async function initChallenges() {
+            // Check roles to show/hide admin panel
+            const isStaff = laacRole === 'admin' || laacRole.startsWith('LAAC-staff');
+            if (isStaff) {
+                document.getElementById('crew-panel').style.display = 'block';
+            }
+
+            await loadChallenges();
+        }
+
+        async function loadChallenges() {
+            try {
+                const response = await fetch('/api/challenges');
+                if (!response.ok) throw new Error("Erro ao carregar desafios");
+                challengesList = await response.json();
+
+                renderActiveChallenges();
+                renderPastChallenges();
+                populateAdminSelect();
+            } catch (err) {
+                console.error(err);
+                const errHtml = `<p class="text-muted text-center" style="grid-column: 1/-1; padding: 2rem;">Erro ao ligar ao serviço de desafios. Tente mais tarde.</p>`;
+                document.getElementById('active-challenges-grid').innerHTML = errHtml;
+                document.getElementById('past-challenges-grid').innerHTML = errHtml;
+            }
+        }
+
+        function renderActiveChallenges() {
+            const container = document.getElementById('active-challenges-grid');
+            const active = challengesList.filter(c => c.status === 'active');
+
+            if (active.length === 0) {
+                container.innerHTML = `<div class="glass text-center text-muted" style="grid-column: 1/-1; padding: 3rem;">
+                    <i class="fa-solid fa-circle-info fa-2x" style="color: var(--accent);"></i>
+                    <p style="margin-top: 1rem;">Não existem desafios a decorrer de momento. Fica atento!</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = active.map(c => {
+                const end = new Date(c.end_date.replace(' ', 'T'));
+                const now = new Date();
+                const diffTime = Math.max(0, end - now);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let timeBadge = '';
+                if (diffDays <= 3) {
+                    timeBadge = `<span class="time-badge critical"><i class="fa-solid fa-triangle-exclamation"></i> Termina em ${diffDays} dias!</span>`;
+                } else {
+                    timeBadge = `<span class="time-badge"><i class="fa-regular fa-clock"></i> Faltam ${diffDays} dias</span>`;
+                }
+
+                return `
+                    <div class="challenge-card glass">
+                        <div class="card-header">
+                            <span class="prize-tag"><i class="fa-solid fa-gift"></i> ${c.prize}</span>
+                            ${timeBadge}
+                        </div>
+                        <div class="card-body">
+                            <h3>${c.title}</h3>
+                            <p class="text-muted">${c.description}</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-primary" onclick="openSubmitModal(${c.id})">
+                                <i class="fa-solid fa-camera"></i> Participar
+                            </button>
+                            <button class="btn-secondary" onclick="viewSubmissions(${c.id}, '${c.title}')">
+                                <i class="fa-solid fa-images"></i> Ver Fotos
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPastChallenges() {
+            const container = document.getElementById('past-challenges-grid');
+            const past = challengesList.filter(c => c.status === 'ended');
+
+            if (past.length === 0) {
+                container.innerHTML = `<div class="glass text-center text-muted" style="grid-column: 1/-1; padding: 3rem;">
+                    <p>Ainda não terminou nenhum concurso fotográfico. Os vencedores serão mostrados aqui!</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = past.map(c => {
+                return `
+                    <div class="winner-card glass">
+                        <div class="winner-photo-wrapper">
+                            <img src="${c.winner_photo_url || 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800'}" alt="Foto Vencedora">
+                            <div class="winner-overlay">
+                                <span class="winner-tag"><i class="fa-solid fa-crown"></i> VENCEDOR</span>
+                            </div>
+                        </div>
+                        <div class="winner-info">
+                            <span class="past-contest-title">${c.title}</span>
+                            <h3>Fotógrafo: ${c.winner_name || 'Estudante UBI'}</h3>
+                            <p class="prize-info"><i class="fa-solid fa-award"></i> Prémio: <strong>${c.prize}</strong></p>
+                            <button class="btn-secondary" style="margin-top: 1rem; width: 100%;" onclick="viewSubmissions(${c.id}, '${c.title}')">
+                                <i class="fa-solid fa-images"></i> Ver Outras Fotos
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function populateAdminSelect() {
+            const select = document.getElementById('review-challenge-select');
+            const active = challengesList.filter(c => c.status === 'active');
+            
+            // Keep first option
+            select.innerHTML = '<option value="">-- Selecione um desafio --</option>';
+            active.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.title;
+                select.appendChild(opt);
+            });
+        }
+
+        // Student Submissions view modal
+        async function viewSubmissions(challengeId, challengeTitle) {
+            const modal = document.getElementById('view-submissions-modal');
+            const grid = document.getElementById('submissions-viewer-grid');
+            document.getElementById('submissions-viewer-title').innerText = `Galeria: ${challengeTitle}`;
+            
+            grid.innerHTML = '<div class="text-center text-muted" style="grid-column: 1/-1; padding: 2rem;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+            modal.classList.add('active');
+
+            try {
+                const response = await fetch(`/api/challenges/${challengeId}/submissions?role=${laacRole}`);
+                if (!response.ok) throw new Error("Erro ao ir buscar submissões");
+                const submissions = await response.json();
+
+                if (submissions.length === 0) {
+                    grid.innerHTML = `<div class="text-center text-muted" style="grid-column: 1/-1; padding: 3rem;">
+                        <i class="fa-regular fa-image fa-2x"></i>
+                        <p style="margin-top: 1rem;">Ainda não existem fotografias aprovadas nesta galeria. Sê o primeiro a enviar!</p>
+                    </div>`;
+                    return;
+                }
+
+                grid.innerHTML = submissions.map(s => {
+                    const isWinner = s.status === 'winner';
+                    const badge = isWinner ? '<span class="gal-winner-badge"><i class="fa-solid fa-crown"></i> Vencedor</span>' : '';
+                    return `
+                        <div class="gallery-photo-card glass ${isWinner ? 'winner-border' : ''}">
+                            <div class="photo-container">
+                                <img src="${s.photo_url}" alt="Submissão">
+                                ${badge}
+                            </div>
+                            <div class="photo-info">
+                                <h4>${s.user_name}</h4>
+                                <p class="caption text-muted">"${s.caption}"</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = '<p class="text-muted text-center" style="grid-column: 1/-1;">Erro ao carregar fotografias.</p>';
+            }
+        }
+
+        function closeSubmissionsViewer() {
+            document.getElementById('view-submissions-modal').classList.remove('active');
+        }
+
+        // Open submit photo modal
+        function openSubmitModal(challengeId) {
+            if (!laacUserId || laacUserId === 'undefined') {
+                alert('Tens de estar autenticado para submeter uma fotografia. Por favor, faz login.');
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('submit-challenge-id').value = challengeId;
+            document.getElementById('submit-photo-form').reset();
+            document.getElementById('upload-preview-container').style.display = 'none';
+            document.getElementById('file-name-label').innerText = 'Formatos suportados: PNG, JPG, JPEG';
+            document.getElementById('submit-modal').classList.add('active');
+        }
+
+        function closeSubmitModal() {
+            document.getElementById('submit-modal').classList.remove('active');
+        }
+
+        function handleFileSelect() {
+            const fileInput = document.getElementById('photo-file-input');
+            const previewContainer = document.getElementById('upload-preview-container');
+            const previewImg = document.getElementById('upload-preview-img');
+            const label = document.getElementById('file-name-label');
+
+            const file = fileInput.files[0];
+            if (file) {
+                label.innerText = `Ficheiro selecionado: ${file.name}`;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function submitPhotoEntry(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-entry');
+            const challengeId = document.getElementById('submit-challenge-id').value;
+            const caption = document.getElementById('submit-caption').value;
+            const fileInput = document.getElementById('photo-file-input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Por favor seleciona uma fotografia!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A submeter...';
+
+            const formData = new FormData();
+            formData.append('user_id', laacUserId);
+            formData.append('user_email', laacUserEmail);
+            formData.append('caption', caption);
+            formData.append('image', file);
+
+            try {
+                const response = await fetch(`/api/challenges/${challengeId}/submit`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Fotografia submetida com sucesso! Aguarda a aprovação da LAACcrew.');
+                    closeSubmitModal();
+                } else {
+                    alert(data.detail || 'Erro ao submeter a fotografia.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao ligar ao servidor de submissões.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submeter Candidatura';
+            }
+        }
+
+        // LAACcrew / Admin functions
+        async function createNewChallenge(e) {
+            e.preventDefault();
+            const title = document.getElementById('chal-title').value;
+            const description = document.getElementById('chal-desc').value;
+            const prize = document.getElementById('chal-prize').value;
+            const endDateRaw = document.getElementById('chal-end').value;
+
+            // Convert local datetime input format to readable string
+            const end_date = endDateRaw.replace('T', ' ');
+
+            const payload = { title, description, prize, end_date };
+
+            try {
+                const response = await fetch('/api/challenges', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Desafio publicado com sucesso!');
+                    document.getElementById('create-challenge-form').reset();
+                    await loadChallenges();
+                } else {
+                    alert(data.detail || 'Erro ao publicar desafio.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao ligar ao servidor.');
+            }
+        }
+
+        async function loadSubmissionsForReview() {
+            const challengeId = document.getElementById('review-challenge-select').value;
+            const container = document.getElementById('submissions-review-list');
+            
+            if (!challengeId) {
+                container.innerHTML = '<p class="text-muted text-center" style="padding: 2rem;">Selecione um desafio para rever as participações.</p>';
+                return;
+            }
+
+            container.innerHTML = '<div class="text-center text-muted" style="padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> A carregar participações...</div>';
+
+            try {
+                const response = await fetch(`/api/challenges/${challengeId}/submissions?role=${laacRole}`);
+                const submissions = await response.json();
+
+                if (submissions.length === 0) {
+                    container.innerHTML = '<p class="text-muted text-center" style="padding: 2rem;">Não existem participações para este desafio.</p>';
+                    return;
+                }
+
+                container.innerHTML = submissions.map(s => {
+                    const statusTextMap = {
+                        'pending': 'Pendente',
+                        'approved': 'Aprovada',
+                        'rejected': 'Rejeitada',
+                        'winner': 'Vencedora'
+                    };
+                    const statusClassMap = {
+                        'pending': 'review-status pending',
+                        'approved': 'review-status approved',
+                        'rejected': 'review-status rejected',
+                        'winner': 'review-status winner'
+                    };
+
+                    let buttons = '';
+                    if (s.status !== 'winner') {
+                        buttons = `
+                            <div class="review-actions">
+                                <button class="btn-review approve" onclick="evaluateEntry(${s.id}, 'approved')"><i class="fas fa-check"></i> Aprovar</button>
+                                <button class="btn-review reject" onclick="evaluateEntry(${s.id}, 'rejected')"><i class="fas fa-times"></i> Rejeitar</button>
+                                <button class="btn-review publish-winner" onclick="evaluateEntry(${s.id}, 'winner')"><i class="fas fa-crown"></i> Poblicar Vencedor</button>
+                            </div>
+                        `;
+                    } else {
+                        buttons = `<p style="color: var(--accent); font-weight: bold; font-size: 0.85rem;"><i class="fas fa-crown"></i> Escolhido como Vencedor!</p>`;
+                    }
+
+                    return `
+                        <div class="review-item glass">
+                            <div class="review-item-main">
+                                <img src="${s.photo_url}" class="review-photo-preview" onclick="window.open(this.src)">
+                                <div class="review-details">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <h4>${s.user_name}</h4>
+                                        <span class="${statusClassMap[s.status]}">${statusTextMap[s.status]}</span>
+                                    </div>
+                                    <span class="text-muted" style="font-size: 0.75rem;">E-mail: ${s.user_email}</span>
+                                    <p class="caption">"${s.caption}"</p>
+                                </div>
+                            </div>
+                            ${buttons}
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="text-muted text-center" style="padding: 2rem;">Erro ao carregar participações.</p>';
+            }
+        }
+
+        async function evaluateEntry(submissionId, status) {
+            if (status === 'winner') {
+                const ok = confirm("Tem a certeza de que deseja declarar esta foto como a VENCEDORA? Isto encerrará este desafio.");
+                if (!ok) return;
+            }
+
+            try {
+                const response = await fetch(`/api/submissions/${submissionId}/evaluate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message);
+                    if (status === 'winner') {
+                        // Refresh everything since challenge is now ended
+                        await loadChallenges();
+                    } else {
+                        await loadSubmissionsForReview();
+                    }
+                } else {
+                    alert(data.detail || 'Erro ao avaliar a submissão.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao ligar ao servidor.');
+            }
+        }
+
+        window.onload = initChallenges;
+    </script>
+</body>
+</html>

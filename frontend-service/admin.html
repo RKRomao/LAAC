@@ -10,13 +10,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon16x16.png">
 </head>
 
 <body>
 
     <div class="admin-layout">
         <aside class="sidebar">
-            <div class="logo">LAAC <span>Admin</span></div>
+            <div class="logo logo-img"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC Admin" style="height: 35px;"><span style="color: var(--secondary); font-size: 1rem; font-weight: 600; margin-left: 0.5rem; text-transform: uppercase;">Admin</span></div>
             <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
                 <a href="#" id="link-users" class="sidebar-link active" onclick="switchView('users')"><i
                         class="fa-solid fa-users"></i> Utilizadores</a>
@@ -299,7 +302,7 @@
             </div>
 
             <footer>
-                <div class="logo">LAAC</div>
+                <div class="logo logo-img"><img src="assets/Logo/Logo_white_text_horizontal.png" alt="LAAC" style="height: 25px;"></div>
                 <div class="footer-links">
                     <a href="#">Privacidade</a>
                     <a href="#">Termos</a>

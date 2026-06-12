@@ -46,6 +46,7 @@ services:
       - CHATBOT_SERVICE_URL=http://chatbot-service:8009
       - EVENTS_SERVICE_URL=http://events-service:8014
       - NEWS_SERVICE_URL=http://news-service:8015
+      - CHALLENGE_SERVICE_URL=http://challenge-service:8017
     # ports:
     #   - "8000:8000"
     depends_on:
@@ -335,6 +336,38 @@ services:
     volumes:
       - ./news-service:/app
 
+  challenge-mariadb:
+    image: mariadb:10.11
+    container_name: laac-challenge-mariadb
+    environment:
+      MARIADB_DATABASE: laac_challenge_db
+      MARIADB_USER: laac_user
+      MARIADB_PASSWORD: laac_pass
+      MARIADB_ROOT_PASSWORD: root_pass
+    volumes:
+      - challenge_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--password=root_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  challenge-service:
+    build: ./challenge-service
+    container_name: laac-challenge-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8017 --reload
+    volumes:
+      - ./challenge-service:/app
+    environment:
+      - DB_HOST=challenge-mariadb
+      - DB_USER=laac_user
+      - DB_PASS=laac_pass
+      - DB_NAME=laac_challenge_db
+      - PROFILE_SERVICE_URL=http://profile-service:8010
+    depends_on:
+      challenge-mariadb:
+        condition: service_healthy
+
 #  tunnel:
 #    image: cloudflare/cloudflared:latest
 #    container_name: laac-tunnel
@@ -346,3 +379,4 @@ services:
 volumes:
   mariadb_data:
   calendar_mariadb_data:
+  challenge_mariadb_data:
