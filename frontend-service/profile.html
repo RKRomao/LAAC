@@ -7,9 +7,58 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=1.1">
     
-    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="profile.css?v=1.1">
+    <style>
+        .connection-tab {
+            transition: var(--transition);
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.2rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+        .connection-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            opacity: 1 !important;
+        }
+        .connection-badge {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.6rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .connection-badge:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        .connection-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .connection-info {
+            flex: 1;
+        }
+        .connection-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+        }
+        .btn-edit-profile.following {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+    </style>
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon16x16.png">
@@ -61,13 +110,24 @@
                     </div>
                 </div>
                 <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 1rem 0;">
-                <button class="btn-edit-profile" onclick="openEditModal()">Editar Perfil</button>
+                <button id="btn-action-profile" class="btn-edit-profile" onclick="openEditModal()">Editar Perfil</button>
             </div>
 
             <div class="profile-card glass" style="margin-top: 1.5rem;">
                 <h3>Organizações</h3>
                 <div id="org-list">
                     <!-- Organizations will be loaded here -->
+                </div>
+            </div>
+
+            <div class="profile-card glass" style="margin-top: 1.5rem;" id="connections-card">
+                <h3>Conexões</h3>
+                <div class="connections-tabs" style="display: flex; gap: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                    <span id="tab-followers" class="connection-tab active" onclick="switchConnectionTab('followers')">Seguidores</span>
+                    <span id="tab-following" class="connection-tab" onclick="switchConnectionTab('following')">A Seguir</span>
+                </div>
+                <div id="connections-list" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Connection items will be loaded here -->
                 </div>
             </div>
         </div>
@@ -188,23 +248,37 @@
     </div>
 
     <script>
-        const userEmail = localStorage.getItem('laac_user_email');
+        const currentUserEmail = localStorage.getItem('laac_user_email');
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewEmail = urlParams.get('email') || currentUserEmail;
+        const isOwnProfile = !urlParams.get('email') || urlParams.get('email') === currentUserEmail;
         let profileData = null;
         
+        let activeConnectionTab = 'followers';
+        let followersList = [];
+        let followingList = [];
+
         async function loadProfile() {
-            if (!userEmail) {
+            if (!currentUserEmail) {
                 window.location.href = 'login.html';
                 return;
             }
 
             try {
-                const response = await fetch(`/api/profiles/${userEmail}`);
+                const response = await fetch(`/api/profiles/${viewEmail}`);
+                if (!response.ok) {
+                    throw new Error(`Profile load returned status ${response.status}`);
+                }
                 profileData = await response.json();
+                
+                if (!profileData || !profileData.id) {
+                    throw new Error("Invalid or empty user profile response");
+                }
 
                 // UI Update
-                document.getElementById('profile-name').innerText = profileData.display_name || userEmail.split('@')[0];
+                document.getElementById('profile-name').innerText = profileData.display_name || viewEmail.split('@')[0];
                 document.getElementById('profile-bio').innerText = profileData.bio || 'Sem biografia.';
-                document.getElementById('profile-avatar').src = profileData.avatar_url || 'https://ui-avatars.com/api/?name=' + userEmail;
+                document.getElementById('profile-avatar').src = profileData.avatar_url || 'https://ui-avatars.com/api/?name=' + viewEmail;
                 
                 const bannerImg = document.getElementById('profile-banner-img');
                 if (profileData.banner_url) {
@@ -216,16 +290,18 @@
 
                 // Privacy Handling in UI
                 const priv = profileData.privacy_settings || {};
-                document.getElementById('profile-course-year').innerText = priv.show_course ? `${profileData.course} · ${profileData.year}º Ano` : '';
+                document.getElementById('profile-course-year').innerText = priv.show_course ? `${profileData.course || 'Não especificado'} · ${profileData.year || 1}º Ano` : '';
                 document.getElementById('profile-email-display').innerText = priv.show_email ? profileData.email : '';
-                document.getElementById('stat-orgs').innerText = profileData.organizations.length;
+                
+                const orgs = profileData.organizations || [];
+                document.getElementById('stat-orgs').innerText = orgs.length;
                 
                 const orgList = document.getElementById('org-list');
                 orgList.parentElement.style.display = priv.show_orgs ? 'block' : 'none';
                 
                 orgList.innerHTML = '';
-                if (profileData.organizations.length > 0) {
-                    profileData.organizations.forEach(org => {
+                if (orgs.length > 0) {
+                    orgs.forEach(org => {
                         const div = document.createElement('div');
                         div.className = 'organization-badge';
                         div.innerHTML = `
@@ -239,12 +315,48 @@
                     });
                 }
 
+                // Action Button Setup
+                const actionBtn = document.getElementById('btn-action-profile');
+                if (isOwnProfile) {
+                    actionBtn.innerText = 'Editar Perfil';
+                    actionBtn.classList.remove('following');
+                    actionBtn.onclick = openEditModal;
+                } else {
+                    let currentUserId = localStorage.getItem('laac_user_id');
+                    if (!currentUserId && currentUserEmail) {
+                        try {
+                            const selfResp = await fetch(`/api/profiles/${currentUserEmail}`);
+                            if (selfResp.ok) {
+                                const selfData = await selfResp.json();
+                                currentUserId = selfData.id;
+                                localStorage.setItem('laac_user_id', currentUserId);
+                            }
+                        } catch (e) { console.error(e); }
+                    }
+                    
+                    let following = false;
+                    if (currentUserId && profileData.id) {
+                        try {
+                            const followCheck = await fetch(`/api/profiles/${currentUserId}/is_following/${profileData.id}`);
+                            if (followCheck.ok) {
+                                const checkData = await followCheck.json();
+                                following = checkData.is_following;
+                            }
+                        } catch (e) { console.error(e); }
+                    }
+                    
+                    actionBtn.innerText = following ? 'Seguindo' : 'Seguir';
+                    if (following) actionBtn.classList.add('following');
+                    else actionBtn.classList.remove('following');
+                    actionBtn.onclick = () => toggleFollowProfile(profileData.id, actionBtn);
+                }
+
                 // Fill edit fields
-                document.getElementById('edit-name').value = profileData.display_name;
-                document.getElementById('edit-bio').value = profileData.bio;
-                document.getElementById('edit-course').value = profileData.course;
-                document.getElementById('edit-year').value = profileData.year;
-                document.getElementById('preview-avatar').src = profileData.avatar_url;
+                document.getElementById('edit-name').value = profileData.display_name || '';
+                document.getElementById('edit-bio').value = profileData.bio || '';
+                document.getElementById('edit-course').value = profileData.course || '';
+                document.getElementById('edit-year').value = profileData.year || 1;
+                document.getElementById('preview-avatar').src = profileData.avatar_url || '';
                 document.getElementById('preview-banner').src = profileData.banner_url || 'https://via.placeholder.com/800x200?text=Sem+Banner';
                 
                 // Set privacy checkboxes
@@ -252,8 +364,143 @@
                 document.getElementById('privacy-course').checked = priv.show_course !== false;
                 document.getElementById('privacy-orgs').checked = priv.show_orgs !== false;
 
+                // Load Connections (Followers & Following)
+                loadFollowersAndFollowing(profileData.id);
+
+                // Fetch feed and filter for user's posts
+                let userPostsCount = 0;
+                try {
+                    const feedResp = await fetch('/api/feed');
+                    if (feedResp.ok) {
+                        const feed = await feedResp.json();
+                        const userPosts = feed.filter(p => p.author_id === profileData.id);
+                        userPostsCount = userPosts.length;
+                        
+                        const activityFeed = document.getElementById('activity-feed');
+                        if (userPosts.length > 0) {
+                            activityFeed.innerHTML = userPosts.map(post => {
+                                const postDate = new Date(post.created_at).toLocaleString('pt-PT');
+                                let mediaHtml = '';
+                                if (post.video_url) {
+                                    mediaHtml = `
+                                        <video controls style="max-height: 200px; border-radius: 12px; margin-top: 0.5rem; width: 100%;">
+                                            <source src="${post.video_url}" type="video/mp4">
+                                        </video>`;
+                                } else if (post.image_url) {
+                                    mediaHtml = `<img src="${post.image_url}" style="max-height: 200px; border-radius: 12px; margin-top: 0.5rem; object-fit: cover; width: 100%;">`;
+                                }
+                                
+                                return `
+                                    <div class="activity-item" style="text-align: left; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.2rem; margin-bottom: 1rem;">
+                                        <div style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 0.5rem;">${postDate}</div>
+                                        <p style="font-size: 0.95rem; line-height: 1.4;">${post.content}</p>
+                                        ${mediaHtml}
+                                    </div>
+                                `;
+                            }).join('');
+                        } else {
+                            activityFeed.innerHTML = `
+                                <i class="fas fa-ghost fa-3x" style="margin-bottom: 1rem; opacity: 0.3;"></i>
+                                <p>Ainda não há atividade para mostrar.</p>
+                            `;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error loading user activity:", e);
+                }
+                document.getElementById('stat-posts').innerText = userPostsCount;
+
+                if (isOwnProfile && urlParams.get('edit') === 'true') {
+                    openEditModal();
+                }
             } catch (error) {
                 console.error('Erro ao carregar perfil:', error);
+            }
+        }
+
+        async function loadFollowersAndFollowing(userId) {
+            try {
+                const followersResp = await fetch(`/api/profiles/${userId}/followers`);
+                if (followersResp.ok) {
+                    followersList = await followersResp.json();
+                }
+            } catch (e) {
+                console.error("Error loading followers:", e);
+            }
+
+            try {
+                const followingResp = await fetch(`/api/profiles/${userId}/following`);
+                if (followingResp.ok) {
+                    followingList = await followingResp.json();
+                }
+            } catch (e) {
+                console.error("Error loading following:", e);
+            }
+
+            // Update stats counter
+            document.getElementById('stat-connections').innerText = followersList.length;
+
+            renderConnections();
+        }
+
+        function renderConnections() {
+            const listContainer = document.getElementById('connections-list');
+            if (!listContainer) return;
+
+            const list = activeConnectionTab === 'followers' ? followersList : followingList;
+            
+            if (list.length === 0) {
+                listContainer.innerHTML = `<p class="text-muted" style="text-align: center; font-size: 0.85rem; padding: 1rem;">Nenhum registo encontrado.</p>`;
+                return;
+            }
+
+            listContainer.innerHTML = list.map(item => `
+                <div class="connection-badge" onclick="navigateToProfile('${item.email || ''}')">
+                    <img src="${item.avatar || 'https://ui-avatars.com/api/?name=' + item.name}" class="connection-avatar" alt="${item.name}">
+                    <div class="connection-info">
+                        <div class="connection-name">${item.name}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchConnectionTab(tab) {
+            activeConnectionTab = tab;
+            document.getElementById('tab-followers').classList.toggle('active', tab === 'followers');
+            document.getElementById('tab-following').classList.toggle('active', tab === 'following');
+            renderConnections();
+        }
+
+        function navigateToProfile(email) {
+            if (!email) return;
+            window.location.href = `profile.html?email=${email}`;
+        }
+
+        async function toggleFollowProfile(targetId, btn) {
+            const currentUserId = localStorage.getItem('laac_user_id');
+            if (!currentUserId) {
+                alert('Tens de estar ligado para seguir outros utilizadores!');
+                return;
+            }
+            try {
+                const response = await fetch(`/api/profiles/${currentUserId}/follow/${targetId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    if (data.action === 'followed') {
+                        btn.classList.add('following');
+                        btn.innerText = 'Seguindo';
+                    } else {
+                        btn.classList.remove('following');
+                        btn.innerText = 'Seguir';
+                    }
+                    // Refresh followers
+                    loadFollowersAndFollowing(profileData.id);
+                }
+            } catch (error) {
+                console.error('Erro ao seguir utilizador:', error);
             }
         }
 
@@ -295,7 +542,7 @@
                 if (bannerFile) bannerUrl = await uploadFile(bannerFile);
 
                 const payload = {
-                    email: userEmail,
+                    email: currentUserEmail,
                     display_name: document.getElementById('edit-name').value,
                     bio: document.getElementById('edit-bio').value,
                     course: document.getElementById('edit-course').value,
@@ -347,5 +594,6 @@
 
         window.onload = loadProfile;
     </script>
+    <script src="translate.js" defer></script>
 </body>
 </html>

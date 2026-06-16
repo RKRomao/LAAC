@@ -28,6 +28,21 @@ def get_db():
     finally:
         db.close()
 
+@app.on_event("startup")
+def startup():
+    with engine.connect() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                incident_id INT NOT NULL,
+                sender_email VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                is_responder BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        conn.commit()
+
 # Models
 class ChatMessageCreate(BaseModel):
     incident_id: int

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, UploadFile, File, Form, Header
+from fastapi import FastAPI, Depends, UploadFile, File, Form, Header, HTTPException, Response
 from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
@@ -179,15 +179,17 @@ async def get_emergency_history():
         return response.json()
 
 @app.get("/profiles/{email}")
-async def get_user_profile(email: str):
+async def get_user_profile(email: str, res: Response):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{PROFILE_SERVICE_URL}/profiles/{email}")
+        res.status_code = response.status_code
         return response.json()
 
 @app.post("/profiles")
-async def update_user_profile(data: dict):
+async def update_user_profile(data: dict, res: Response):
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{PROFILE_SERVICE_URL}/profiles", json=data)
+        res.status_code = response.status_code
         return response.json()
 
 @app.post("/profiles/upload")
@@ -531,21 +533,31 @@ async def get_comments(post_id: int):
         return response.json()
 
 @app.post("/profiles/{follower_id}/follow/{followed_id}")
-async def follow_user(follower_id: int, followed_id: int):
+async def follow_user(follower_id: int, followed_id: int, res: Response):
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{PROFILE_SERVICE_URL}/profiles/{follower_id}/follow/{followed_id}")
+        res.status_code = response.status_code
         return response.json()
 
 @app.get("/profiles/{user_id}/following")
-async def get_following(user_id: int):
+async def get_following(user_id: int, res: Response):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{PROFILE_SERVICE_URL}/profiles/{user_id}/following")
+        res.status_code = response.status_code
+        return response.json()
+
+@app.get("/profiles/{user_id}/followers")
+async def get_followers(user_id: int, res: Response):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{PROFILE_SERVICE_URL}/profiles/{user_id}/followers")
+        res.status_code = response.status_code
         return response.json()
 
 @app.get("/profiles/{user_id}/is_following/{target_id}")
-async def check_following(user_id: int, target_id: int):
+async def check_following(user_id: int, target_id: int, res: Response):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{PROFILE_SERVICE_URL}/profiles/{user_id}/is_following/{target_id}")
+        res.status_code = response.status_code
         return response.json()
 
 # Challenge Proxy Routes

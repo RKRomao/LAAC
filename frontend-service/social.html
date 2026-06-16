@@ -116,29 +116,41 @@
             // Load Profile Data for UI
             try {
                 const response = await fetch(`/api/profiles/${email}`);
+                if (!response.ok) {
+                    throw new Error(`Profile load returned status ${response.status}`);
+                }
                 currentUser = await response.json();
+                
+                if (!currentUser || !currentUser.id) {
+                    throw new Error("Invalid or empty user profile fetched");
+                }
                 
                 // Save user ID to localStorage for social interactions
                 localStorage.setItem('laac_user_id', currentUser.id);
 
                 // Fetch Following List
+                let following = [];
                 const followResp = await fetch(`/api/profiles/${currentUser.id}/following`);
-                const following = await followResp.json();
-                followingIds = following.map(f => f.id);
+                if (followResp.ok) {
+                    following = await followResp.json();
+                }
+                followingIds = Array.isArray(following) ? following.map(f => f.id) : [];
 
-                document.getElementById('mini-name').innerText = currentUser.display_name;
-                document.getElementById('mini-course').innerText = currentUser.course;
-                document.getElementById('mini-avatar').src = currentUser.avatar_url;
-                document.getElementById('input-avatar').src = currentUser.avatar_url;
+                document.getElementById('mini-name').innerText = currentUser.display_name || email.split('@')[0];
+                document.getElementById('mini-course').innerText = currentUser.course || 'Não especificado';
+                document.getElementById('mini-avatar').src = currentUser.avatar_url || 'https://ui-avatars.com/api/?name=' + email;
+                document.getElementById('input-avatar').src = currentUser.avatar_url || 'https://ui-avatars.com/api/?name=' + email;
 
                 // Load Orgs for Select
                 const orgSelect = document.getElementById('post-org');
-                currentUser.organizations.forEach(org => {
-                    const opt = document.createElement('option');
-                    opt.value = org.id;
-                    opt.textContent = `Publicar como ${org.name}`;
-                    orgSelect.appendChild(opt);
-                });
+                if (currentUser.organizations && Array.isArray(currentUser.organizations)) {
+                    currentUser.organizations.forEach(org => {
+                        const opt = document.createElement('option');
+                        opt.value = org.id;
+                        opt.textContent = `Publicar como ${org.name}`;
+                        orgSelect.appendChild(opt);
+                    });
+                }
 
             } catch (error) {
                 console.error('Erro ao carregar perfil:', error);
@@ -398,5 +410,6 @@
 
         window.onload = initSocial;
     </script>
+    <script src="translate.js" defer></script>
 </body>
 </html>

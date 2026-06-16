@@ -14,7 +14,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=1.1">
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon16x16.png">
@@ -253,6 +253,7 @@
     </footer>
 
     <script src="script.js"></script>
+    <script src="translate.js" defer></script>
     <script>
         let currentFlow = null;
         let selectedClass = null;
@@ -464,23 +465,15 @@
             btn.innerHTML = 'A enviar...';
 
             try {
-                let url = '/api/tickets';
-                let body = { 
-                    type: 'administrative', 
-                    title: document.getElementById('srv-title').value,
-                    description: document.getElementById('srv-desc').value,
-                    assigned_team: 'Academic'
+                const title = document.getElementById('srv-title').value;
+                const description = document.getElementById('srv-desc').value;
+                const url = '/api/calendar/reports/schedule';
+                const body = {
+                    class_id: selectedClass ? selectedClass.id : null,
+                    subject_name: selectedClass ? selectedClass.subject_name : title,
+                    description: description,
+                    academic_year: (userProfileData && userProfileData.academic_year) || "2025/2026"
                 };
-
-                if (selectedClass) {
-                    url = '/api/calendar/reports/schedule';
-                    body = {
-                        class_id: selectedClass.id,
-                        subject_name: selectedClass.subject_name,
-                        description: body.description,
-                        academic_year: userProfileData.academic_year || "2025/2026"
-                    };
-                }
 
                 const res = await fetch(url, {
                     method: 'POST',

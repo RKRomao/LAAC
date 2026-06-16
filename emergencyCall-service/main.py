@@ -26,6 +26,19 @@ def get_db():
     finally:
         db.close()
 
+@app.on_event("startup")
+def startup():
+    with engine.connect() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS emergency_calls (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_email VARCHAR(255) NOT NULL,
+                status VARCHAR(50) DEFAULT 'A_LIGAR',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        conn.commit()
+
 class CallRequest(BaseModel):
     user_email: str
 

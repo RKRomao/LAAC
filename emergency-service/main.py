@@ -28,6 +28,24 @@ def get_db():
     finally:
         db.close()
 
+@app.on_event("startup")
+def startup():
+    with engine.connect() as conn:
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS emergencies (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_email VARCHAR(255) NOT NULL,
+                type VARCHAR(50) NOT NULL,
+                status VARCHAR(50) DEFAULT 'ABERTO',
+                lat DOUBLE NOT NULL,
+                lng DOUBLE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                resolved_at TIMESTAMP NULL,
+                resolution_note TEXT
+            )
+        """))
+        conn.commit()
+
 # Models
 class EmergencyAlert(BaseModel):
     user_email: str

@@ -112,15 +112,28 @@ class TestProfileService(unittest.TestCase):
         self.assertEqual(response.json()["detail"], "Não podes seguir-te a ti próprio")
 
     def test_get_following(self):
-        # returns row list of (id, display_name, avatar_url)
+        # returns row list of (id, email, display_name, avatar_url)
         self.mock_db.execute.return_value.fetchall.return_value = [
-            (2, "Silva UBI", "avatar_url")
+            (2, "silva@ubi.pt", "Silva UBI", "avatar_url")
         ]
         
         response = self.client.get("/profiles/1/following")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()[0]["id"], 2)
+        self.assertEqual(response.json()[0]["email"], "silva@ubi.pt")
         self.assertEqual(response.json()[0]["name"], "Silva UBI")
+
+    def test_get_followers(self):
+        # returns row list of (id, email, display_name, avatar_url)
+        self.mock_db.execute.return_value.fetchall.return_value = [
+            (3, "follower@ubi.pt", "Follower UBI", "avatar_url")
+        ]
+        
+        response = self.client.get("/profiles/1/followers")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["id"], 3)
+        self.assertEqual(response.json()[0]["email"], "follower@ubi.pt")
+        self.assertEqual(response.json()[0]["name"], "Follower UBI")
 
     def test_is_following(self):
         # returns 1 if following, None if not

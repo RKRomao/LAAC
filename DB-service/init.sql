@@ -194,9 +194,9 @@ CREATE TABLE enrollments (
   semester_id INT,
   enrollment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (student_id) REFERENCES students(id),
-  FOREIGN KEY (course_id) REFERENCES courses(id),
-  FOREIGN KEY (class_id) REFERENCES classes(id),
-  FOREIGN KEY (semester_id) REFERENCES semesters(id)
+  FOREIGN KEY (course_id) REFERENCES courses(id)
+  -- FOREIGN KEY (class_id) REFERENCES classes(id),
+  -- FOREIGN KEY (semester_id) REFERENCES semesters(id)
 );
 
 -- --- EVENTS ---
@@ -268,6 +268,18 @@ INSERT INTO roles (role_name, description, permissions) VALUES
 ('LAAC-staff:Response-team', 'Equipa de resposta a emergências', '["view_admin", "manage_emergencies"]'),
 ('aluno', 'Estudante UBI', '[]'),
 ('funcionarios-ubi', 'Funcionários da universidade', '[]');
+
+CREATE TABLE IF NOT EXISTS emergencies (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_email VARCHAR(255) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  status VARCHAR(50) DEFAULT 'ABERTO',
+  lat DOUBLE NOT NULL,
+  lng DOUBLE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TIMESTAMP NULL,
+  resolution_note TEXT
+);
 
 -- --- CHALLENGES ---
 

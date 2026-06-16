@@ -182,14 +182,26 @@ async def follow_user(follower_id: int, followed_id: int, db: Session = Depends(
 @app.get("/profiles/{user_id}/following")
 async def get_following(user_id: int, db: Session = Depends(get_db)):
     result = db.execute(text("""
-        SELECT u.id, p.display_name, p.avatar_url 
+        SELECT u.id, u.email, p.display_name, p.avatar_url 
         FROM users u
         JOIN user_profiles p ON u.email = p.email
         JOIN user_follows f ON u.id = f.followed_id
         WHERE f.follower_id = :uid
     """), {"uid": user_id}).fetchall()
     
-    return [{"id": r[0], "name": r[1], "avatar": r[2]} for r in result]
+    return [{"id": r[0], "email": r[1], "name": r[2], "avatar": r[3]} for r in result]
+
+@app.get("/profiles/{user_id}/followers")
+async def get_followers(user_id: int, db: Session = Depends(get_db)):
+    result = db.execute(text("""
+        SELECT u.id, u.email, p.display_name, p.avatar_url 
+        FROM users u
+        JOIN user_profiles p ON u.email = p.email
+        JOIN user_follows f ON u.id = f.follower_id
+        WHERE f.followed_id = :uid
+    """), {"uid": user_id}).fetchall()
+    
+    return [{"id": r[0], "email": r[1], "name": r[2], "avatar": r[3]} for r in result]
 
 @app.get("/profiles/{user_id}/is_following/{target_id}")
 async def is_following(user_id: int, target_id: int, db: Session = Depends(get_db)):

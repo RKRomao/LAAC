@@ -26,6 +26,7 @@ def run_backup():
         print(f"Fazendo dump de {DB_NAME}...")
         command = [
             "mariadb-dump",
+            "--skip-ssl",
             f"--host={DB_HOST}",
             f"--user={DB_USER}",
             f"--password={DB_PASS}",
@@ -43,6 +44,7 @@ def run_backup():
         print(f"Fazendo dump de {CALENDAR_DB_NAME}...")
         command = [
             "mariadb-dump",
+            "--skip-ssl",
             f"--host={CALENDAR_DB_HOST}",
             f"--user={DB_USER}",
             f"--password={DB_PASS}",

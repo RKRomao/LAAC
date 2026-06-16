@@ -27,7 +27,7 @@
 
 .post-textarea {
     flex: 1;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
     color: white;
@@ -55,7 +55,9 @@
     transition: var(--transition);
 }
 
-.action-btn:hover { color: var(--primary); }
+.action-btn:hover {
+    color: var(--primary);
+}
 
 .btn-post {
     background: var(--primary);
@@ -68,7 +70,10 @@
     transition: var(--transition);
 }
 
-.btn-post:hover { opacity: 0.9; transform: translateY(-2px); }
+.btn-post:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
 
 .feed-item {
     padding: 1.5rem;
@@ -82,12 +87,20 @@
     margin-bottom: 1rem;
 }
 
-.feed-author-info h4 { margin: 0; font-size: 1rem; }
-.feed-author-info span { font-size: 0.8rem; opacity: 0.6; }
+.feed-author-info h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.feed-author-info span {
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
 
 .feed-content {
     line-height: 1.5;
     margin-bottom: 1rem;
+    margin-top: 5 rem;
 }
 
 .feed-image {
@@ -112,7 +125,9 @@
     gap: 0.5rem;
 }
 
-.footer-action:hover { color: var(--primary); }
+.footer-action:hover {
+    color: var(--primary);
+}
 
 .footer-action.liked {
     color: #ef4444;
@@ -125,7 +140,7 @@
 /* Comments Styling */
 .comments-section {
     padding: 1.5rem;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.1);
     border-top: 1px solid var(--glass-border);
     border-radius: 0 0 24px 24px;
 }
@@ -192,9 +207,17 @@
 }
 
 @media (max-width: 1000px) {
-    .social-container { grid-template-columns: 1fr; }
-    .profile-mini, .trending-orgs { display: none; }
+    .social-container {
+        padding-top: 10rem;
+        grid-template-columns: 1fr;
+    }
+
+    .profile-mini,
+    .trending-orgs {
+        display: none;
+    }
 }
+
 .btn-follow {
     padding: 4px 12px;
     border-radius: 20px;
@@ -206,12 +229,14 @@
     cursor: pointer;
     transition: var(--transition);
 }
+
 .btn-follow:hover {
     background: var(--primary);
     color: white;
 }
+
 .btn-follow.following {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-color: var(--glass-border);
     color: white;
 }

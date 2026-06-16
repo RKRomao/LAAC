@@ -34,8 +34,10 @@ class MockAsyncClient:
     async def get(self, url, params=None, headers=None, *args, **kwargs):
         if "is_following" in url:
             return MockResponse({"following": True})
+        elif "followers" in url:
+            return MockResponse([{"id": 1, "email": "follower@ubi.pt", "name": "Maria Silva", "avatar": "avatar_url"}])
         elif "following" in url:
-            return MockResponse([{"id": 2}])
+            return MockResponse([{"id": 2, "email": "following@ubi.pt", "name": "Rita Santos", "avatar": "avatar_url"}])
         elif "profiles/" in url:
             return MockResponse({"email": "test@ubi.pt", "name": "Tiago Silva"})
         elif "users" in url:
@@ -488,6 +490,11 @@ def test_following_endpoints():
     res_following = client.get("/profiles/1/following")
     assert res_following.status_code == 200
     assert res_following.json()[0]["id"] == 2
+
+    # GET /profiles/{user_id}/followers
+    res_followers = client.get("/profiles/1/followers")
+    assert res_followers.status_code == 200
+    assert res_followers.json()[0]["id"] == 1
 
     # GET /profiles/{user_id}/is_following/{target_id}
     res_check = client.get("/profiles/1/is_following/2")

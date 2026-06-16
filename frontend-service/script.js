@@ -131,7 +131,7 @@ function checkLoginState() {
             <a href="profile.html" class="dropdown-item"><i class="fa-solid fa-circle-user"></i> Perfil</a>
             ${staffDashboardLink}
             ${adminLink}
-            <div class="dropdown-item"><i class="fa-solid fa-gear"></i> Definições</div>
+            <div class="dropdown-item" onclick="openSettings()"><i class="fa-solid fa-gear"></i> Definições</div>
             <hr style="opacity: 0.1; margin: 0.5rem 0;">
             <div class="dropdown-item logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</div>
         `;
@@ -145,6 +145,19 @@ function checkLoginState() {
 
 function toggleUserDropdown() {
     document.getElementById('user-dropdown').classList.toggle('active');
+}
+
+function openSettings() {
+    const profileModal = document.getElementById('profile-modal');
+    if (profileModal) {
+        toggleProfile();
+    } else if (window.location.pathname.endsWith('profile.html')) {
+        if (typeof openEditModal === 'function') {
+            openEditModal();
+        }
+    } else {
+        window.location.href = 'profile.html?edit=true';
+    }
 }
 
 // Profile Functions
@@ -396,12 +409,16 @@ async function loadChatMessages() {
         const messages = await response.json();
         const container = document.getElementById('chat-messages');
         
-        container.innerHTML = messages.map(msg => `
+        const newHtml = messages.map(msg => `
             <div class="msg ${msg.is_responder ? 'bot' : 'user'}">
                 ${msg.message}
             </div>
         `).join('');
-        container.scrollTop = container.scrollHeight;
+        
+        if (container.innerHTML !== newHtml) {
+            container.innerHTML = newHtml;
+            container.scrollTop = container.scrollHeight;
+        }
     } catch (e) { console.error(e); }
 }
 
